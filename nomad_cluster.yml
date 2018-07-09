@@ -1,0 +1,303 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Nomad Cluster
+
+
+Parameters:
+  ImageId:
+    Type: String
+  InstanceType:
+    Type: String
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  VpcCidr:
+    Type: String
+  SubnetCidr:
+    Type: String
+  TrustedCidr:
+    Type: String
+
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  InternetGatewayAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+      AvailabilityZone: us-east-1a
+
+
+  SubnetAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: InternetGatewayAttach
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+
+  EIPA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPC:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPAssocA:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceA
+      AllocationId: !GetAtt [EIPA, AllocationId]
+
+
+  EIPAssocB:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceB
+      AllocationId: !GetAtt [EIPB, AllocationId]
+
+
+  EIPAssocC:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceC
+      AllocationId: !GetAtt [EIPC, AllocationId]
+
+
+  TrustedSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable trusted access
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref TrustedCidr
+
+
+  NomadInterfaceA:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceA
+      GroupSet: [!Ref TrustedSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadInterfaceB:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceB
+      GroupSet: [!Ref TrustedSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadInterfaceC:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceC
+      GroupSet: [!Ref TrustedSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+  NomadInstanceA:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      NetworkInterfaces:
+      - NetworkInterfaceId: !Ref NomadInterfaceA
+        DeviceIndex: 0
+      Tags:
+      - Key: Name
+        Value: Nomad-A
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum -y update
+            yum -y install wget jq docker
+            usermod -a -G docker ec2-user
+            service docker start
+            chkconfig docker on
+            wget https://releases.hashicorp.com/nomad/0.8.4/nomad_0.8.4_linux_amd64.zip
+            unzip nomad_0.8.4_linux_amd64.zip  -d /usr/local/bin
+            nomad --version
+
+
+  NomadInstanceB:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      NetworkInterfaces:
+      - NetworkInterfaceId: !Ref NomadInterfaceB
+        DeviceIndex: 0
+      Tags:
+      - Key: Name
+        Value: Nomad-B
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum -y update
+            yum -y install wget jq docker
+            usermod -a -G docker ec2-user
+            service docker start
+            chkconfig docker on
+            wget https://releases.hashicorp.com/nomad/0.8.4/nomad_0.8.4_linux_amd64.zip
+            unzip nomad_0.8.4_linux_amd64.zip  -d /usr/local/bin
+            nomad --version
+
+
+  NomadInstanceC:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      NetworkInterfaces:
+      - NetworkInterfaceId: !Ref NomadInterfaceC
+        DeviceIndex: 0
+      Tags:
+      - Key: Name
+        Value: Nomad-C
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum -y update
+            yum -y install wget jq docker
+            usermod -a -G docker ec2-user
+            service docker start
+            chkconfig docker on
+            wget https://releases.hashicorp.com/nomad/0.8.4/nomad_0.8.4_linux_amd64.zip
+            unzip nomad_0.8.4_linux_amd64.zip  -d /usr/local/bin
+            nomad --version
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: EC2Role
+    Properties:
+      Path: /
+      Roles:
+        -
+          Ref: EC2Role
+
+
+Outputs:
+  NomadInstanceIdA:
+    Value: !Ref NomadInstanceA
+    Description: Nomad-A Instance Id
+  NomadPublicIPAddressA:
+    Value: !Join [' ', ['IP address', !Ref EIPA, 'on subnet', !Ref PublicSubnet]]
+    Description: Public IP of Nomad-A
+  NomadPrivateIPAddressA:
+    Value: !Join [' ', ['IP address', !GetAtt [NomadInterfaceA, PrimaryPrivateIpAddress], 'on subnet', !Ref PublicSubnet]]
+    Description: Private IP address of NomadInterfaceA
+
+  NomadInstanceIdB:
+    Value: !Ref NomadInstanceB
+    Description: Nomad-B Instance Id
+  NomadPublicIPAddressB:
+    Value: !Join [' ', ['IP address', !Ref EIPB, 'on subnet', !Ref PublicSubnet]]
+    Description: Public IP of Nomad-B
+  NomadPrivateIPAddressB:
+    Value: !Join [' ', ['IP address', !GetAtt [NomadInterfaceB, PrimaryPrivateIpAddress], 'on subnet', !Ref PublicSubnet]]
+    Description: Private IP address of NomadInterfaceB
+
+  NomadInstanceIdC:
+    Value: !Ref NomadInstanceC
+    Description: Nomad-C Instance Id
+  NomadPublicIPAddressC:
+    Value: !Join [' ', ['IP address', !Ref EIPC, 'on subnet', !Ref PublicSubnet]]
+    Description: Public IP of Nomad-C
+  NomadPrivateIPAddressC:
+    Value: !Join [' ', ['IP address', !GetAtt [NomadInterfaceC, PrimaryPrivateIpAddress], 'on subnet', !Ref PublicSubnet]]
+    Description: Private IP address of NomadInterfaceC
