@@ -15,6 +15,10 @@ Parameters:
     Type: String
   TrustedCidr:
     Type: String
+  NomadVersion:
+    Type: String
+  ConsulVersion:
+    Type: String
 
 
 Resources:
@@ -165,85 +169,76 @@ Resources:
       - Key: Name
         Value: !Ref AWS::StackName
 
+
+  NomadLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: NomadLaunchTemplate
+      LaunchTemplateData:
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        IamInstanceProfile:
+          Name: !Ref EC2InstanceProfile
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash -xe
+              yum -y update
+              yum -y install wget jq docker
+              usermod -a -G docker ec2-user
+              service docker start
+              chkconfig docker on
+              wget https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
+              unzip nomad_${NomadVersion}_linux_amd64.zip  -d /usr/local/bin
+              nomad --version
+              wget https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              unzip consul_${ConsulVersion}_linux_amd64.zip -d /usr/local/bin
+              consul --version
+
+
   NomadInstanceA:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref ImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref EC2InstanceProfile
       NetworkInterfaces:
       - NetworkInterfaceId: !Ref NomadInterfaceA
         DeviceIndex: 0
       Tags:
       - Key: Name
         Value: Nomad-A
-      UserData:
-        Fn::Base64:
-          !Sub |
-            #!/bin/bash -xe
-            yum -y update
-            yum -y install wget jq docker
-            usermod -a -G docker ec2-user
-            service docker start
-            chkconfig docker on
-            wget https://releases.hashicorp.com/nomad/0.8.4/nomad_0.8.4_linux_amd64.zip
-            unzip nomad_0.8.4_linux_amd64.zip  -d /usr/local/bin
-            nomad --version
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NomadLaunchTemplate
+        Version: 1
 
 
   NomadInstanceB:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref ImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref EC2InstanceProfile
       NetworkInterfaces:
       - NetworkInterfaceId: !Ref NomadInterfaceB
         DeviceIndex: 0
       Tags:
       - Key: Name
         Value: Nomad-B
-      UserData:
-        Fn::Base64:
-          !Sub |
-            #!/bin/bash -xe
-            yum -y update
-            yum -y install wget jq docker
-            usermod -a -G docker ec2-user
-            service docker start
-            chkconfig docker on
-            wget https://releases.hashicorp.com/nomad/0.8.4/nomad_0.8.4_linux_amd64.zip
-            unzip nomad_0.8.4_linux_amd64.zip  -d /usr/local/bin
-            nomad --version
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NomadLaunchTemplate
+        Version: 1
 
 
   NomadInstanceC:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref ImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref EC2InstanceProfile
       NetworkInterfaces:
       - NetworkInterfaceId: !Ref NomadInterfaceC
         DeviceIndex: 0
       Tags:
       - Key: Name
         Value: Nomad-C
-      UserData:
-        Fn::Base64:
-          !Sub |
-            #!/bin/bash -xe
-            yum -y update
-            yum -y install wget jq docker
-            usermod -a -G docker ec2-user
-            service docker start
-            chkconfig docker on
-            wget https://releases.hashicorp.com/nomad/0.8.4/nomad_0.8.4_linux_amd64.zip
-            unzip nomad_0.8.4_linux_amd64.zip  -d /usr/local/bin
-            nomad --version
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NomadLaunchTemplate
+        Version: 1
+
+
   EC2Role:
     Type: AWS::IAM::Role
     Properties:

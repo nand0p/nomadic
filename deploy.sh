@@ -9,6 +9,8 @@ INSTANCE_TYPE=t2.large
 KEY_NAME=nomad
 VPC_CIDR=10.10.10.0/24
 SUBNET_CIDR=10.10.10.0/24
+NOMAD_VERSION=0.8.4
+CONSUL_VERSION=1.2.0
 
 if [ -z ${TRUSTED_CIDR} ]; then
   echo "export TRUSTED_CIDR"
@@ -22,6 +24,8 @@ PARAMETERS="\
   VpcCidr=${VPC_CIDR} \
   SubnetCidr=${SUBNET_CIDR} \
   TrustedCidr=${TRUSTED_CIDR} \
+  NomadVersion=${NOMAD_VERSION} \
+  ConsulVersion=${CONSUL_VERSION} \
 "
 
 echo -e "\n\nDeploying ${STACK_NAME} Stack:\n\n"
