@@ -27,7 +27,7 @@ job "hello-world" {
     task "hello-world" {
       driver = "docker"
       config {
-        image = "nand0p/hello-world:1.3"
+        image = "nand0p/hello-world:1.5"
         port_map {
           http = 80
         }
@@ -39,10 +39,10 @@ job "hello-world" {
         port = "http"
         check {
           name = "hello-world"
-          type = "tcp"
+          type = "http"
           interval = "10s"
           timeout = "3s"
-          port = "http"
+          path = "/"
         }
       }
 
