@@ -7,7 +7,8 @@ RUN yum -y install nginx
 RUN ln -sfv /dev/stdout /var/log/nginx/access.log
 RUN ln -sfv /dev/stdout /var/log/nginx/error.log
 
-COPY app/index.html /usr/share/nginx/html/index.html
+COPY index.html /usr/share/nginx/html/index.html
+COPY stelligent.jpg /usr/share/nginx/html/stelligent.jpg
 
 EXPOSE 80
 

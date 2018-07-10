@@ -266,6 +266,58 @@ Resources:
           Ref: EC2Role
 
 
+  FabioLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Instances:
+        - !Ref NomadInstanceA
+        - !Ref NomadInstanceB
+        - !Ref NomadInstanceC
+      LoadBalancerName: FabioFrontend
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '9999'
+          Protocol: HTTP
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref TrustedSecurityGroup
+      Subnets:
+        - !Ref PublicSubnet
+
+
+# NOTE: V2 LBs require 2 subnets
+#  FabioLoadBalancer:
+#    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+#    Properties:
+#      SecurityGroups:
+#        - !Ref TrustedSecurityGroup
+#      Scheme: internet-facing
+#      Subnets:
+#        - !Ref PublicSubnet
+#      Type: application
+#      IpAddressType: ipv4
+#
+#
+#  FabioTargetGroup:
+#    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+#    Properties:
+#      Port: 9999
+#      Protocol: HTTP
+#      TargetType: ip
+#      VpcId: !Ref VPC
+#
+#
+#  FabioListener:
+#    Type: AWS::ElasticLoadBalancingV2::Listener
+#    Properties:
+#      DefaultActions:
+#        - Type: forward
+#          TargetGroupArn: !Ref FabioTargetGroup
+#      LoadBalancerArn: !Ref FabioLoadBalancer
+#      Port: '80'
+#      Protocol: HTTP
+
+
 Outputs:
   NomadInstanceIdA:
     Value: !Ref NomadInstanceA
@@ -296,3 +348,7 @@ Outputs:
   NomadPrivateIPAddressC:
     Value: !Join [' ', ['IP address', !GetAtt [NomadInterfaceC, PrimaryPrivateIpAddress], 'on subnet', !Ref PublicSubnet]]
     Description: Private IP address of NomadInterfaceC
+
+  FabioLoadBalancer:
+    Value: !GetAtt [FabioLoadBalancer, DNSName]
+    Description: FQDN of Fabio Frontend
