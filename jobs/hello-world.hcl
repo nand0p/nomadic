@@ -1,4 +1,4 @@
-job "helloworld" {
+job "hello-world" {
   datacenters = ["dc1"]
   type = "service"
   priority = 50
@@ -9,14 +9,14 @@ job "helloworld" {
   }
 
   update {
-    stagger = "10s"
-    max_parallel = 1
-    min_healthy_time = "10s"
+    stagger = "1s"
+    max_parallel = 2
+    min_healthy_time = "2s"
     healthy_deadline = "2m"
   }
 
-  group "hello" {
-    count = 5
+  group "hello-world" {
+    count = 7
     restart {
       attempts = 2
       interval = "1m"
@@ -24,17 +24,13 @@ job "helloworld" {
       mode = "fail"
     }
 
-    task "hello" {
+    task "hello-world" {
       driver = "docker"
-
       config {
-        image = "nand0p/hello-world:1.0"
+        image = "nand0p/hello-world:1.3"
         port_map {
-          http = 8080
+          http = 80
         }
-        args = [
-          "-version", "v1.3"
-        ]
       }
 
       service {
@@ -42,17 +38,17 @@ job "helloworld" {
         tags = ["hello-world", "urlprefix-/"]
         port = "http"
         check {
-          name = "alive"
-          type = "http"
+          name = "hello-world"
+          type = "tcp"
           interval = "10s"
           timeout = "3s"
-          path = "/"
+          port = "http"
         }
       }
 
       resources {
-        cpu = 100
-        memory = 32
+        cpu = 500
+        memory = 128
         network {
           mbits = 1
           port "http" {}
