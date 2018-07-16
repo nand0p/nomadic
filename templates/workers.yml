@@ -16,8 +16,67 @@ Parameters:
 Resources:
   NomadWorkerLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          full_install: [install_cfn, install_nomad_worker, verify_nomad_worker]
+        install_cfn:
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.LaunchConfig.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
+                runas=root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: 'true'
+                ensureRunning: 'true'
+                files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+        install_nomad_worker:
+          packages:
+            yum:
+              wget: []
+              jq: []
+              docker: []
+          users:
+            ec2-user:
+              groups:
+                - docker
+          files:
+            /root/nomad.zip:
+              source: !Sub https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+          commands:
+            01-Install-Nomad:
+              command: unzip /root/nomad.zip -d /usr/local/bin
+          services:
+            sysvinit:
+              docker:
+                enabled: true
+                ensureRunning: true
+        verify_nomad_worker:
+          commands:
+            ELBHealthCheck:
+              command: !Sub
+                'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
+                 --load-balancer-name ${NomadLoadBalancer}
+                 --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+                 --query InstanceStates[0].State); sleep 10; done'
     Properties:
-      AssociatePublicIpAddress: False
+      AssociatePublicIpAddress: True
       EbsOptimized: False
       IamInstanceProfile: !ImportValue NomadWorkerInstanceProfile
       ImageId: !Ref ImageId
@@ -25,42 +84,13 @@ Resources:
       KeyName: !Ref KeyName
       SecurityGroups:
         - !ImportValue NomadWorkerSecurityGroup
-      UserData: !Base64
-        'Fn::Join':
-          - ''
-          - - |
-              #!/bin/bash -xe
-            - |
-            - yum -y update
-            - |
-            - yum -y install wget jq docker
-            - |
-            - usermod -a -G docker ec2-user
-            - |
-            - service docker start
-            - |
-            - chkconfig docker on
-            - |
-            - wget https://releases.hashicorp.com/nomad/
-            - !Ref NomadVersion
-            - /nomad_
-            - !Ref NomadVersion
-            - _linux_amd64.zip
-            - |
-            - unzip nomad_
-            - !Ref NomadVersion
-            - _linux_amd64.zip  -d /usr/local/bin
-            - |
-            - /usr/local/bin/nomad --version
-            - |
-            - '/opt/aws/bin/cfn-init -v '
-            - '         --stack '
-            - !Ref 'AWS::StackName'
-            - '         --resource WebServerInstance '
-            - '         --configsets InstallAndRun '
-            - '         --region '
-            - !Ref 'AWS::Region'
-            - |+
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum -y update
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource WebServerGroup --region ${AWS::Region}
 
 
   NomadWorkerASG:

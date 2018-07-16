@@ -41,6 +41,10 @@ Resources:
               wget https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
               unzip consul_${ConsulVersion}_linux_amd64.zip -d /usr/local/bin
               /usr/local/bin/consul --version
+              export IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+              /usr/local/bin/consul agent -advertise ${IP_ADDRESS} -data-dir consul-data -server -ui > consul.log &
+              wget https://raw.githubusercontent.com/nand0p/nomadic/master/config/nomad_masters.hcl
+              /usr/local/bin/nomad agent -config nomad_masters.hcl > nomad-masters.log &
 
 
   NomadMasterA:

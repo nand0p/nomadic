@@ -112,16 +112,55 @@ Resources:
       AllocationId: !GetAtt [EIPC, AllocationId]
 
 
-  TrustedSecurityGroup:
+  NomadMasterSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: !Ref VPC
-      GroupDescription: Enable trusted access
+      GroupDescription: Nomad Master Security Group
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
         CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 4646
+        ToPort: 4647
+        SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 8300
+        ToPort: 8300
+        SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
+  NomadMasterIngressSerfTCP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: nomad-serf-tcp
+      FromPort: 4648
+      ToPort: 4648
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+  NomadMasterIngressSerfUDP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: nomad-serf-udp
+      FromPort: 4648
+      ToPort: 4648
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: udp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+  NomadMasterIngressConsulTCP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-tcp
+      FromPort: 8300
+      ToPort: 8300
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: udp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
 
   NomadWorkerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -149,7 +188,7 @@ Resources:
     Type: AWS::EC2::NetworkInterface
     Properties:
       Description: NomadInterfaceA
-      GroupSet: [!Ref TrustedSecurityGroup]
+      GroupSet: [!Ref NomadMasterSecurityGroup]
       SourceDestCheck: true
       SubnetId: !Ref PublicSubnet
       Tags:
@@ -161,7 +200,7 @@ Resources:
     Type: AWS::EC2::NetworkInterface
     Properties:
       Description: NomadInterfaceB
-      GroupSet: [!Ref TrustedSecurityGroup]
+      GroupSet: [!Ref NomadMasterSecurityGroup]
       SourceDestCheck: true
       SubnetId: !Ref PublicSubnet
       Tags:
@@ -173,7 +212,7 @@ Resources:
     Type: AWS::EC2::NetworkInterface
     Properties:
       Description: NomadInterfaceC
-      GroupSet: [!Ref TrustedSecurityGroup]
+      GroupSet: [!Ref NomadMasterSecurityGroup]
       SourceDestCheck: true
       SubnetId: !Ref PublicSubnet
       Tags:

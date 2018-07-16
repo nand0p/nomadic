@@ -6,7 +6,7 @@ server {
 }
 
 client {
-  enabled = true
+  enabled = false
 }
 
 consul {
