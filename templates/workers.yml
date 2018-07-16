@@ -56,7 +56,7 @@ Resources:
               owner: root
               group: root
             /etc/init.d/consul:
-              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul.sysv.rc
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul_sysv.rc
               mode: '000755'
               owner: root
               group: root
@@ -103,15 +103,10 @@ Resources:
               owner: root
               group: root
             /etc/init.d/nomad:
-              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad.rc
-              mode: '000644'
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad_sysv.rc
               owner: root
               group: root
-            /etc/init.d/nomad:
-              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad.sysv.rc
               mode: '000755'
-              owner: root
-              group: root
           commands:
             01-Install-Nomad:
               command: unzip /root/nomad.zip -d /usr/local/bin
