@@ -24,7 +24,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          full_install: [install_cfn, install_consul_worker, install_nomad_worker, verify_workers]
+          full_install: [install_cfn, install_docker, install_consul_worker, install_nomad_worker, verify_workers]
         install_cfn:
           files:
             /etc/cfn/cfn-hup.conf:
@@ -45,8 +45,8 @@ Resources:
           services:
             sysvinit:
               cfn-hup:
-                enabled: 'true'
-                ensureRunning: 'true'
+                enabled: true
+                ensureRunning: true
                 files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
         install_consul_worker:
           files:
@@ -55,12 +55,22 @@ Resources:
               mode: '000644'
               owner: root
               group: root
+            /etc/init.d/consul:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul.sysv.rc
+              mode: '000755'
+              owner: root
+              group: root
           commands:
             01-install-consul:
               command: unzip /root/consul.zip -d /usr/local/bin
-            02-run-consul:
-              command: /usr/local/bin/consul agent -advertise $(curl http://169.254.169.254/latest/meta-data/local-ipv4) -data-dir consul-data -join ${ConsulLeader} > consul.log &
-        install_nomad_worker:
+            #02-run-consul:
+            #  command: /usr/local/bin/consul agent -advertise $(curl http://169.254.169.254/latest/meta-data/local-ipv4) -data-dir consul-data -join ${ConsulLeader} > consul.log &
+          services:
+            sysvinit:
+              consul:
+                enabled: true
+                ensureRunning: true
+        install_docker:
           packages:
             yum:
               wget: []
@@ -70,6 +80,12 @@ Resources:
             ec2-user:
               groups:
                 - docker
+          services:
+            sysvinit:
+              docker:
+                enabled: true
+                ensureRunning: true
+        install_nomad_worker:
           files:
             /root/nomad.zip:
               source: !Sub https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
@@ -86,16 +102,26 @@ Resources:
               mode: '000644'
               owner: root
               group: root
+            /etc/init.d/nomad:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad.rc
+              mode: '000644'
+              owner: root
+              group: root
+            /etc/init.d/nomad:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad.sysv.rc
+              mode: '000755'
+              owner: root
+              group: root
           commands:
             01-Install-Nomad:
               command: unzip /root/nomad.zip -d /usr/local/bin
-            02-Run-Nomad:
-              command: /usr/local/bin/nomad agent -config /root/nomad_workers.hcl > nomad-workers.log &
-            03-Run-Fabio:
-              command: /usr/local/bin/nomad run /root/fabio.hcl
+            #02-Run-Nomad:
+            #  command: /usr/local/bin/nomad agent -config /root/nomad_workers.hcl > nomad-workers.log &
+            #03-Run-Fabio:
+            #  command: /usr/local/bin/nomad run /root/fabio.hcl
           services:
             sysvinit:
-              docker:
+              nomad:
                 enabled: true
                 ensureRunning: true
         verify_workers:
