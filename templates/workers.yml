@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Nomad Cluster Workers
+
+
+Parameters:
+  ImageId:
+    Type: String
+  InstanceType:
+    Type: String
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  NomadVersion:
+    Type: String
+
+
+Resources:
+  NomadWorkerLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: False
+      EbsOptimized: False
+      IamInstanceProfile: !ImportValue NomadWorkerInstanceProfile
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !ImportValue NomadWorkerSecurityGroup
+      UserData: !Base64
+        'Fn::Join':
+          - ''
+          - - |
+              #!/bin/bash -xe
+            - |
+            - yum -y update
+            - |
+            - yum -y install wget jq docker
+            - |
+            - usermod -a -G docker ec2-user
+            - |
+            - service docker start
+            - |
+            - chkconfig docker on
+            - |
+            - wget https://releases.hashicorp.com/nomad/
+            - !Ref NomadVersion
+            - /nomad_
+            - !Ref NomadVersion
+            - _linux_amd64.zip
+            - |
+            - unzip nomad_
+            - !Ref NomadVersion
+            - _linux_amd64.zip  -d /usr/local/bin
+            - |
+            - /usr/local/bin/nomad --version
+            - |
+            - '/opt/aws/bin/cfn-init -v '
+            - '         --stack '
+            - !Ref 'AWS::StackName'
+            - '         --resource WebServerInstance '
+            - '         --configsets InstallAndRun '
+            - '         --region '
+            - !Ref 'AWS::Region'
+            - |+
+
+
+  NomadWorkerASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      Cooldown: 1
+      DesiredCapacity: 3
+      HealthCheckGracePeriod: 15
+      HealthCheckType: ELB
+      LaunchConfigurationName: !Ref NomadWorkerLaunchConfiguration
+      LoadBalancerNames:
+        - !Ref NomadLoadBalancer
+      MaxSize: 10
+      MinSize: 1
+      Tags:
+        - PropagateAtLaunch: True
+          Key: Name
+          Value: nomad-worker
+      VPCZoneIdentifier:
+        - !ImportValue NomadPublicSubnet
+      #TargetGroupARNs:
+      #  - String
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: True
+    CreationPolicy:
+      ResourceSignal:
+        Count: 3
+        Timeout: PT10M
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+
+
+  NomadLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      LoadBalancerName: NomadFrontend
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '9999'
+          Protocol: HTTP
+      Scheme: internet-facing
+      SecurityGroups:
+        - !ImportValue NomadLoadBalancerSecurityGroup
+      Subnets:
+        - !ImportValue NomadPublicSubnet
+
+
+# NOTE: V2 LBs require 2 subnets
+#  FabioLoadBalancer:
+#    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+#    Properties:
+#      SecurityGroups:
+#        - !Ref TrustedSecurityGroup
+#      Scheme: internet-facing
+#      Subnets:
+#        - !Ref PublicSubnet
+#      Type: application
+#      IpAddressType: ipv4
+#
+#
+#  FabioTargetGroup:
+#    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+#    Properties:
+#      Port: 9999
+#      Protocol: HTTP
+#      TargetType: ip
+#      VpcId: !Ref VPC
+#
+#
+#  FabioListener:
+#    Type: AWS::ElasticLoadBalancingV2::Listener
+#    Properties:
+#      DefaultActions:
+#        - Type: forward
+#          TargetGroupArn: !Ref FabioTargetGroup
+#      LoadBalancerArn: !Ref FabioLoadBalancer
+#      Port: '80'
+#      Protocol: HTTP
+
+
+
+Outputs:
+  NomadLoadBalancer:
+    Value: !GetAtt [NomadLoadBalancer, DNSName]
+    Description: FQDN of Nomad Frontend

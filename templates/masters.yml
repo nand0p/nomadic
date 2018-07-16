@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Nomad Cluster Masters
+
+
+Parameters:
+  ImageId:
+    Type: String
+  InstanceType:
+    Type: String
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  NomadVersion:
+    Type: String
+  ConsulVersion:
+    Type: String
+
+
+Resources:
+  NomadLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: NomadLaunchTemplate
+      LaunchTemplateData:
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        IamInstanceProfile:
+          Name: !ImportValue NomadMasterInstanceProfile
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash -xe
+              yum -y update
+              yum -y install wget jq docker
+              usermod -a -G docker ec2-user
+              service docker start
+              chkconfig docker on
+              wget https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
+              unzip nomad_${NomadVersion}_linux_amd64.zip  -d /usr/local/bin
+              /usr/local/bin/nomad --version
+              wget https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              unzip consul_${ConsulVersion}_linux_amd64.zip -d /usr/local/bin
+              /usr/local/bin/consul --version
+
+
+  NomadMasterA:
+    Type: AWS::EC2::Instance
+    Properties:
+      NetworkInterfaces:
+      - NetworkInterfaceId: !ImportValue NomadInterfaceA
+        DeviceIndex: 0
+      Tags:
+      - Key: Name
+        Value: Nomad-Master-A
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NomadLaunchTemplate
+        Version: 1
+
+
+  NomadMasterB:
+    Type: AWS::EC2::Instance
+    Properties:
+      NetworkInterfaces:
+      - NetworkInterfaceId: !ImportValue NomadInterfaceB
+        DeviceIndex: 0
+      Tags:
+      - Key: Name
+        Value: Nomad-Master-B
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NomadLaunchTemplate
+        Version: 1
+
+
+  NomadMasterC:
+    Type: AWS::EC2::Instance
+    Properties:
+      NetworkInterfaces:
+      - NetworkInterfaceId: !ImportValue NomadInterfaceC
+        DeviceIndex: 0
+      Tags:
+      - Key: Name
+        Value: Nomad-Master-C
+      LaunchTemplate:
+        LaunchTemplateId: !Ref NomadLaunchTemplate
+        Version: 1
+
+
+Outputs:
+  NomadMasterA:
+    Value: !Ref NomadMasterA
+    Description: Nomad-Master-A InstanceId
+
+  NomadMasterB:
+    Value: !Ref NomadMasterB
+    Description: Nomad-Master-B InstanceId
+
+  NomadMasterC:
+    Value: !Ref NomadMasterC
+    Description: Nomad-Master-C InstanceId

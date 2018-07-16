@@ -1,0 +1,301 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Nomad Cluster VPC
+
+
+Parameters:
+  VpcCidr:
+    Type: String
+  SubnetCidr:
+    Type: String
+  TrustedCidr:
+    Type: String
+
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  InternetGatewayAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+      AvailabilityZone: us-east-1a
+
+
+  SubnetAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: InternetGatewayAttach
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+
+  EIPA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPC:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPAssocA:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceA
+      AllocationId: !GetAtt [EIPA, AllocationId]
+
+
+  EIPAssocB:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceB
+      AllocationId: !GetAtt [EIPB, AllocationId]
+
+
+  EIPAssocC:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceC
+      AllocationId: !GetAtt [EIPC, AllocationId]
+
+
+  TrustedSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable trusted access
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref TrustedCidr
+
+  NomadWorkerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Nomad Worker Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref TrustedCidr
+
+  NomadLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Nomad Load Balancer Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: !Ref TrustedCidr
+
+  NomadInterfaceA:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceA
+      GroupSet: [!Ref TrustedSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadInterfaceB:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceB
+      GroupSet: [!Ref TrustedSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadInterfaceC:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceC
+      GroupSet: [!Ref TrustedSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadMasterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+
+  NomadMasterInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: NomadMasterRole
+    Properties:
+      Path: /
+      Roles:
+        -
+          Ref: NomadMasterRole
+
+
+  NomadWorkerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+
+  NomadWorkerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: NomadWorkerRole
+    Properties:
+      Path: /
+      Roles:
+        -
+          Ref: NomadWorkerRole
+
+Outputs:
+  NomadPublicSubnet:
+    Value: !Ref PublicSubnet
+    Description: Nomad Public Subnet
+    Export:
+      Name: NomadPublicSubnet
+
+  NomadWorkerSecurityGroup:
+    Value: !Ref NomadWorkerSecurityGroup
+    Description: Nomad Worker Security Group
+    Export:
+      Name: NomadWorkerSecurityGroup
+  NomadLoadBalancerSecurityGroup:
+    Value: !Ref NomadLoadBalancerSecurityGroup
+    Description: Nomad LoadBalancer Security Group
+    Export: 
+      Name: NomadLoadBalancerSecurityGroup
+
+  NomadInterfaceA:
+    Value: !Ref NomadInterfaceA
+    Description: Nomad-A Interface ID
+    Export:
+      Name: NomadInterfaceA
+  NomadPublicIPAddressA:
+    Value: !Ref EIPA
+    Description: Nomad-A Public IP
+  NomadPrivateIPAddressA:
+    Value: !GetAtt [NomadInterfaceA, PrimaryPrivateIpAddress]
+    Description: Nomad-A Private IP
+
+  NomadInterfaceB:
+    Value: !Ref NomadInterfaceB
+    Description: Nomad-B Interface ID
+    Export:
+      Name: NomadInterfaceB
+  NomadPublicIPAddressB:
+    Value: !Ref EIPB
+    Description: Nomad-B Public IP
+  NomadPrivateIPAddressB:
+    Value: !GetAtt [NomadInterfaceB, PrimaryPrivateIpAddress]
+    Description: Nomad-B Private IP
+
+  NomadInterfaceC:
+    Value: !Ref NomadInterfaceC
+    Description: Nomad-C Interface ID
+    Export:
+      Name: NomadInterfaceC
+  NomadPublicIPAddressC:
+    Value: !Ref EIPC
+    Description: Nomad-C Public IP
+  NomadPrivateIPAddressC:
+    Value: !GetAtt [NomadInterfaceC, PrimaryPrivateIpAddress]
+    Description: Nomad-C Private IP
+
+  NomadMasterInstanceProfile:
+    Value: !Ref NomadMasterInstanceProfile
+    Description: NomadMasterInstanceProfile
+    Export:
+      Name: NomadMasterInstanceProfile
+
+  NomadWorkerInstanceProfile:
+    Value: !Ref NomadWorkerInstanceProfile
+    Description: NomadWorkerInstanceProfile
+    Export:
+      Name: NomadWorkerInstanceProfile
