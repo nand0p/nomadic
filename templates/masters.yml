@@ -16,10 +16,10 @@ Parameters:
 
 
 Resources:
-  NomadLaunchTemplate:
+  NomadMasterLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: NomadLaunchTemplate
+      LaunchTemplateName: NomadMasterLaunchTemplate
       LaunchTemplateData:
         ImageId: !Ref ImageId
         InstanceType: !Ref InstanceType
@@ -27,24 +27,92 @@ Resources:
         IamInstanceProfile:
           Name: !ImportValue NomadMasterInstanceProfile
         UserData:
-          Fn::Base64:
-            !Sub |
-              #!/bin/bash -xe
-              yum -y update
-              yum -y install wget jq docker
-              usermod -a -G docker ec2-user
-              service docker start
-              chkconfig docker on
-              wget https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
-              unzip nomad_${NomadVersion}_linux_amd64.zip  -d /usr/local/bin
-              /usr/local/bin/nomad --version
-              wget https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
-              unzip consul_${ConsulVersion}_linux_amd64.zip -d /usr/local/bin
-              /usr/local/bin/consul --version
-              export IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
-              /usr/local/bin/consul agent -advertise ${IP_ADDRESS} -data-dir consul-data -server -ui > consul.log &
-              wget https://raw.githubusercontent.com/nand0p/nomadic/master/config/nomad_masters.hcl
-              /usr/local/bin/nomad agent -config nomad_masters.hcl > nomad-masters.log &
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            yum -y update
+            yum install -y aws-cfn-bootstrap
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource NomadMasterLaunchTemplate --configsets full_install --region ${AWS::Region}
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          full_install: [install_cfn, install_consul_master, install_nomad_master, verify_cluster]
+        install_cfn:
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.LaunchConfig.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
+                runas=root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+        install_consul_master:
+          files:
+            /root/consul.zip:
+              source: !Sub https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+          commands:
+            01-install-consul:
+              command: unzip /root/consul.zip -d /usr/local/bin
+
+          #NOTE: write init-script
+          #  02-run-consul:
+          #    command: /usr/local/bin/consul agent -advertise $(curl http://169.254.169.254/latest/meta-data/local-ipv4) -data-dir consul-data -server -ui > consul.log &
+          #services:
+          #  sysvinit:
+          #    consul:
+          #      enabled: true
+          #      ensureRunning: true
+
+        install_nomad_master:
+          files:
+            /root/nomad.zip:
+              source: !Sub https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+            /home/ec2-user/nomad_masters.hcl:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/config/nomad_masters.hcl
+              mode: '000644'
+              owner: root
+              group: root
+          commands:
+            01-Install-Nomad:
+              command: unzip /root/nomad.zip -d /usr/local/bin
+
+          #NOTE: write init-script
+          #  02-run-nomad:
+          #    command: /usr/local/bin/nomad agent -config /root/nomad_masters.hcl > nomad-masters.log &
+          #services:
+          #  sysvinit:
+          #    nomad:
+          #      enabled: true
+          #      ensureRunning: true
+        verify_cluster:
+          commands:
+            01-consul-version:
+              command: /usr/local/bin/consul --version
+            02-consul-status:
+              command: echo '/usr/local/bin/consul status'
+            03-nomad-version:
+              command: /usr/local/bin/nomad --version
+            04-nomad-status:
+              command: echo '/usr/local/bin/nomad status'
 
 
   NomadMasterA:
@@ -57,7 +125,7 @@ Resources:
       - Key: Name
         Value: Nomad-Master-A
       LaunchTemplate:
-        LaunchTemplateId: !Ref NomadLaunchTemplate
+        LaunchTemplateId: !Ref NomadMasterLaunchTemplate
         Version: 1
 
 
@@ -71,7 +139,7 @@ Resources:
       - Key: Name
         Value: Nomad-Master-B
       LaunchTemplate:
-        LaunchTemplateId: !Ref NomadLaunchTemplate
+        LaunchTemplateId: !Ref NomadMasterLaunchTemplate
         Version: 1
 
 
@@ -85,7 +153,7 @@ Resources:
       - Key: Name
         Value: Nomad-Master-C
       LaunchTemplate:
-        LaunchTemplateId: !Ref NomadLaunchTemplate
+        LaunchTemplateId: !Ref NomadMasterLaunchTemplate
         Version: 1
 
 

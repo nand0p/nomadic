@@ -11,6 +11,11 @@ Parameters:
     Type: AWS::EC2::KeyPair::KeyName
   NomadVersion:
     Type: String
+  ConsulVersion:
+    Type: String
+  ConsulLeader:
+    Type: String
+    Default: 10.10.10.137
 
 
 Resources:
@@ -19,7 +24,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          full_install: [install_cfn, install_nomad_worker, verify_nomad_worker]
+          full_install: [install_cfn, install_consul_worker, install_nomad_worker, verify_workers]
         install_cfn:
           files:
             /etc/cfn/cfn-hup.conf:
@@ -43,6 +48,18 @@ Resources:
                 enabled: 'true'
                 ensureRunning: 'true'
                 files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+        install_consul_worker:
+          files:
+            /root/consul.zip:
+              source: !Sub wget https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+          commands:
+            01-install-consul:
+              command: unzip /root/consul.zip -d /usr/local/bin
+            02-run-consul:
+              command: /usr/local/bin/consul agent -advertise $(curl http://169.254.169.254/latest/meta-data/local-ipv4) -data-dir consul-data -join ${ConsulLeader} > consul.log &
         install_nomad_worker:
           packages:
             yum:
@@ -59,22 +76,37 @@ Resources:
               mode: '000644'
               owner: root
               group: root
+            /root/nomad_workers.hcl:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/config/nomad_workers.hcl
+              mode: '000644'
+              owner: root
+              group: root
+            /root/fabio.hcl:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/jobs/fabio.hcl
+              mode: '000644'
+              owner: root
+              group: root
           commands:
             01-Install-Nomad:
               command: unzip /root/nomad.zip -d /usr/local/bin
+            02-Run-Nomad:
+              command: /usr/local/bin/nomad agent -config /root/nomad_workers.hcl > nomad-workers.log &
+            03-Run-Fabio:
+              command: /usr/local/bin/nomad run /root/fabio.hcl
           services:
             sysvinit:
               docker:
                 enabled: true
                 ensureRunning: true
-        verify_nomad_worker:
+        verify_workers:
           commands:
             ELBHealthCheck:
-              command: !Sub
-                'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
-                 --load-balancer-name ${NomadLoadBalancer}
-                 --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-                 --query InstanceStates[0].State); sleep 10; done'
+              command: echo 'test elb'
+              #command: !Sub
+              #  'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
+              #   --load-balancer-name ${NomadLoadBalancer}
+              #   --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+              #   --query InstanceStates[0].State); sleep 10; done'
     Properties:
       AssociatePublicIpAddress: True
       EbsOptimized: False

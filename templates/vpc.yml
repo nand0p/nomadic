@@ -124,6 +124,14 @@ Resources:
         CidrIp: !Ref TrustedCidr
       - IpProtocol: tcp
         FromPort: 4646
+        ToPort: 4646
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 8500
+        ToPort: 8500
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 4646
         ToPort: 4647
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
       - IpProtocol: tcp
@@ -132,20 +140,20 @@ Resources:
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
 
 
-  NomadMasterIngressSerfTCP:
+  NomadMasterIngressTCP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: nomad-serf-tcp
-      FromPort: 4648
+      Description: nomad-tcp
+      FromPort: 4647
       ToPort: 4648
       GroupId: !Ref NomadMasterSecurityGroup
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
 
-  NomadMasterIngressSerfUDP:
+  NomadMasterIngressUDP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: nomad-serf-udp
+      Description: nomad-udp
       FromPort: 4648
       ToPort: 4648
       GroupId: !Ref NomadMasterSecurityGroup
@@ -157,9 +165,9 @@ Resources:
     Properties:
       Description: consul-tcp
       FromPort: 8300
-      ToPort: 8300
+      ToPort: 8301
       GroupId: !Ref NomadMasterSecurityGroup
-      IpProtocol: udp
+      IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
 
   NomadWorkerSecurityGroup:
