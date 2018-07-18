@@ -105,7 +105,17 @@ Resources:
               owner: root
               group: root
             /root/nomad_workers.hcl:
-              source: https://raw.githubusercontent.com/nand0p/nomadic/master/config/nomad_workers.hcl
+              content: |
+                data_dir = "/root/nomad-data"
+                server {
+                  enabled = false
+                }
+                client {
+                  enabled = true
+                }
+                consul {
+                  address = "localhost:8500"
+                }
               mode: '000644'
               owner: root
               group: root
