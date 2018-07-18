@@ -24,7 +24,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          full_install: [install_cfn, install_docker, install_consul_worker, install_nomad_worker, install_fabio, verify_workers]
+          full_install: [install_cfn, install_docker, install_consul_worker, install_nomad_worker, install_fabio, run_microservice, verify_workers]
         install_cfn:
           files:
             /etc/cfn/cfn-hup.conf:
@@ -142,9 +142,19 @@ Resources:
         install_fabio:
           commands:
             00-wait-for-nomad:
-              command: sleep 15
-            01-run-fabio-container:
+              command: sleep 2
+            01-install-fabio-routing-mesh:
               command: /usr/local/bin/nomad run /root/fabio.hcl
+        run_microservice:
+          files:
+            /root/hello-world.hcl:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/jobs/hello-world.hcl
+              owner: root
+              group: root
+              mode: '000644'
+          commands:
+            00-run-hello-world:
+              command: /usr/local/bin/nomad run /root/hello-world.hcl
         verify_workers:
           commands:
             ELBHealthCheck:
