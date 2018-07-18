@@ -1,8 +1,7 @@
 #!/bin/bash
-
-# startup script for consul
+# startup script for consul worker
 # chkconfig: 2345 20 80
-# description: Starts and stops consul
+# description: Starts and stops consul worker
 
 . /etc/init.d/functions
 PROG=consul
@@ -11,44 +10,31 @@ PROG_LOCKFILE=/var/lock/subsys/$PROG
 PROG_LOGFILE=/var/log/$PROG.log
 PROG_PIDFILE=/var/run/$PROG.pid
 PROG_CONFIGFILE=/root/consul_config.json
-
 IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+
+# NOTE: fix this
 CONSUL_LEADER=10.10.10.137
-
-start() {
-  started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
-  [[ $started =~ running ]] && echo $started && return 1
-  echo "Starting $PROG "
-  nohup $PROG_BIN agent -config-file $PROG_CONFIGFILE -client $IP_ADDRESS -advertise $IP_ADDRESS -data-dir consul-data -join $CONSUL_LEADER >>$PROG_LOGFILE 2>&1 &
-}
-
-stop() {
-  echo "Stopping $PROG "
-  killproc -p "$PROG_PIDFILE" "$PROG_BIN"
-  RETVAL=$?
-  echo
-  [ $RETVAL -eq 0 ] && rm -f "$PROG_LOCKFILE"
-  return $RETVAL
-}
 
 case $1 in
   start)
-    start
+    started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
+    [[ $started =~ running ]] && echo $started && return 1
+    echo "Starting $PROG "
+    nohup $PROG_BIN agent -config-file $PROG_CONFIGFILE -client $IP_ADDRESS -advertise $IP_ADDRESS -data-dir consul-data -join $CONSUL_LEADER >>$PROG_LOGFILE 2>&1 &
   ;;
-
   stop)
-    stop
+    echo "Stopping $PROG "
+    killproc -p "$PROG_PIDFILE" "$PROG_BIN"
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && rm -f "$PROG_LOCKFILE"
+    return $RETVAL
   ;;
-
-  restart)
-    stop
-    start
+  status)
+    $PROG_BIN members status
   ;;
-
   *)
-    echo "Usage $0 {start|stop}"
+    echo "Usage $0 {start|stop|status}"
     RETVAL=1
   ;;
-
 esac
 exit $RETVAL
