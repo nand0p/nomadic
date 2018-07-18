@@ -106,7 +106,7 @@ Resources:
               mode: '000644'
               owner: root
               group: root
-            /root/nomad_workers.hcl:
+            /root/nomad_worker.hcl:
               content: |
                 data_dir = "/root/nomad-data"
                 server {
@@ -141,7 +141,9 @@ Resources:
                 ensureRunning: true
         install_fabio:
           commands:
-            01-run-fabio-containers:
+            00-wait-for-nomad:
+              command: sleep 15
+            01-run-fabio-container:
               command: /usr/local/bin/nomad run /root/fabio.hcl
         verify_workers:
           commands:
