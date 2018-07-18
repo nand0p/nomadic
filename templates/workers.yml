@@ -62,7 +62,9 @@ Resources:
                   "data_dir": "/root/consul",
                   "log_level": "INFO",
                   "server": false,
-                  "retry_join": "{{ CONSUL_LEADER }}"
+                  "retry_join": [
+                    "{{ CONSUL_LEADER }}"
+                  ]
                 }
               context:
                 CONSUL_LEADER: !Ref ConsulLeader
