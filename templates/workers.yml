@@ -24,7 +24,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          full_install: [install_cfn, install_docker, install_consul_worker, install_nomad_worker, verify_workers]
+          full_install: [install_cfn, install_docker, install_consul_worker, install_nomad_worker, install_fabio, verify_workers]
         install_cfn:
           files:
             /etc/cfn/cfn-hup.conf:
@@ -127,31 +127,30 @@ Resources:
               owner: root
               group: root
             /etc/init.d/nomad:
-              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad_sysv.rc
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad_worker.rc
               owner: root
               group: root
               mode: '000755'
           commands:
             01-Install-Nomad:
               command: unzip /root/nomad.zip -d /usr/local/bin
-            #02-Run-Nomad:
-            #  command: /usr/local/bin/nomad agent -config /root/nomad_workers.hcl > nomad-workers.log &
-            #03-Run-Fabio:
-            #  command: /usr/local/bin/nomad run /root/fabio.hcl
           services:
             sysvinit:
               nomad:
                 enabled: true
                 ensureRunning: true
+        install_fabio:
+          commands:
+            01-run-fabio-containers:
+              command: /usr/local/bin/nomad run /root/fabio.hcl
         verify_workers:
           commands:
             ELBHealthCheck:
-              command: echo 'test elb'
-              #command: !Sub
-              #  'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
-              #   --load-balancer-name ${NomadLoadBalancer}
-              #   --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-              #   --query InstanceStates[0].State); sleep 10; done'
+              command: !Sub
+                'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
+                 --load-balancer-name ${NomadLoadBalancer}
+                 --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+                 --query InstanceStates[0].State); sleep 10; done'
     Properties:
       AssociatePublicIpAddress: True
       EbsOptimized: False
