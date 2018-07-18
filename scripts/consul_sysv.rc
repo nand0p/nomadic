@@ -19,7 +19,7 @@ start() {
   started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
   [[ $started =~ running ]] && echo $started && return 1
   echo "Starting $PROG "
-  nohup $PROG_BIN agent -config $PROG_CONFIGFILE -client $IP_ADDRESS -advertise $IP_ADDRESS -data-dir consul-data -join $CONSUL_LEADER >>$PROG_LOGFILE 2>&1 &
+  nohup $PROG_BIN agent -config-file $PROG_CONFIGFILE -client $IP_ADDRESS -advertise $IP_ADDRESS -data-dir consul-data -join $CONSUL_LEADER >>$PROG_LOGFILE 2>&1 &
 }
 
 stop() {
