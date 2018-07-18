@@ -134,9 +134,13 @@ Resources:
         FromPort: 4646
         ToPort: 4647
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+      - IpProtocol: udp
+        FromPort: 8301
+        ToPort: 8302
+        SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
       - IpProtocol: tcp
         FromPort: 8300
-        ToPort: 8300
+        ToPort: 8302
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
       - IpProtocol: tcp
         FromPort: 9998
@@ -193,10 +197,32 @@ Resources:
         SourceSecurityGroupId: !Ref NomadLoadBalancerSecurityGroup
 
 
-  NomadWorkerIngressConsulTCP:
+  NomadWorkerIngressConsulTCPmaster:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: consul-tcp
+      Description: consul-tcp-master
+      FromPort: 8301
+      ToPort: 8301
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadWorkerIngressConsulUDPmaster:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-udp-master
+      FromPort: 8301
+      ToPort: 8301
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: udp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadWorkerIngressConsulTCPworker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-tcp-worker
       FromPort: 8301
       ToPort: 8301
       GroupId: !Ref NomadWorkerSecurityGroup
@@ -208,7 +234,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: !Ref VPC
-      GroupDescription: Nomad Load Balancer Security Group
+      GroupDescription: nomad-load-balancer
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 80
@@ -294,6 +320,17 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Policies:
+        -
+          PolicyName: nomad-worker
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement: 
+              - 
+                Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeInstanceHealth
+                Resource: '*'
 
 
   NomadWorkerInstanceProfile:

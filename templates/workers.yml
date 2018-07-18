@@ -195,7 +195,7 @@ Resources:
       Tags:
         - PropagateAtLaunch: True
           Key: Name
-          Value: nomad-worker
+          Value: Nomad-Worker
       VPCZoneIdentifier:
         - !ImportValue NomadPublicSubnet
       #TargetGroupARNs:
@@ -214,11 +214,16 @@ Resources:
   NomadLoadBalancer:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
-      LoadBalancerName: NomadFrontend
       Listeners:
         - LoadBalancerPort: '80'
           InstancePort: '9999'
           Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:9999/
+        HealthyThreshold: '4'
+        UnhealthyThreshold: '10'
+        Interval: '10'
+        Timeout: '5'
       Scheme: internet-facing
       SecurityGroups:
         - !ImportValue NomadLoadBalancerSecurityGroup
