@@ -65,19 +65,39 @@ Resources:
               mode: '000644'
               owner: root
               group: root
+            /etc/init.d/consul:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul_master.rc
+              mode: '000755'
+              owner: root
+              group: root
+            /root/consul_config.json:
+              content: !Sub |
+                {
+                  "datacenter": "dc1",
+                  "data_dir": "/root/consul",
+                  "log_level": "INFO",
+                  "server": false,
+                  "retry_join": [
+                    "{{ CONSUL_A_IP }}",
+                    "{{ CONSUL_B_IP }}",
+                    "{{ CONSUL_C_IP }}"
+                  ]
+                }
+              context:
+                CONSUL_A_IP: !ImportValue ConsulAPrivateIp
+                CONSUL_B_IP: !ImportValue ConsulBPrivateIp
+                CONSUL_C_IP: !ImportValue ConsulCPrivateIp
+              mode: '000644'
+              owner: root
+              group: root
           commands:
             01-install-consul:
               command: unzip /root/consul.zip -d /usr/local/bin
-
-          #NOTE: write init-script
-          #  02-run-consul:
-          #    command: /usr/local/bin/consul agent -advertise $(curl http://169.254.169.254/latest/meta-data/local-ipv4) -data-dir consul-data -server -ui > consul.log &
-          #services:
-          #  sysvinit:
-          #    consul:
-          #      enabled: true
-          #      ensureRunning: true
-
+          services:
+            sysvinit:
+              consul:
+                enabled: true
+                ensureRunning: true
         install_nomad_master:
           files:
             /root/nomad.zip:
@@ -101,18 +121,19 @@ Resources:
               mode: '000644'
               owner: root
               group: root
+            /etc/init.d/nomad:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad_master.rc
+              owner: root
+              group: root
+              mode: '000755'
           commands:
             01-Install-Nomad:
               command: unzip /root/nomad.zip -d /usr/local/bin
-
-          #NOTE: write init-script
-          #  02-run-nomad:
-          #    command: /usr/local/bin/nomad agent -config /root/nomad_masters.hcl > nomad-masters.log &
-          #services:
-          #  sysvinit:
-          #    nomad:
-          #      enabled: true
-          #      ensureRunning: true
+          services:
+            sysvinit:
+              nomad:
+                enabled: true
+                ensureRunning: true
         verify_cluster:
           commands:
             01-consul-version:

@@ -150,6 +150,7 @@ Resources:
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
 
+
   NomadMasterIngressUDP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -160,6 +161,7 @@ Resources:
       IpProtocol: udp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
 
+
   NomadMasterIngressConsulTCP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -169,6 +171,7 @@ Resources:
       GroupId: !Ref NomadMasterSecurityGroup
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
 
   NomadWorkerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -185,6 +188,7 @@ Resources:
         ToPort: 9999
         SourceSecurityGroupId: !Ref NomadLoadBalancerSecurityGroup
 
+
   NomadWorkerIngressConsulTCP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -194,6 +198,7 @@ Resources:
       GroupId: !Ref NomadWorkerSecurityGroup
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
 
   NomadLoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -205,6 +210,7 @@ Resources:
         FromPort: 80
         ToPort: 80
         CidrIp: !Ref TrustedCidr
+
 
   NomadInterfaceA:
     Type: AWS::EC2::NetworkInterface
@@ -324,6 +330,8 @@ Outputs:
   NomadPrivateIPAddressA:
     Value: !GetAtt [NomadInterfaceA, PrimaryPrivateIpAddress]
     Description: Nomad-A Private IP
+    Export:
+      Name: ConsulAPrivateIp
 
   NomadInterfaceB:
     Value: !Ref NomadInterfaceB
@@ -336,6 +344,8 @@ Outputs:
   NomadPrivateIPAddressB:
     Value: !GetAtt [NomadInterfaceB, PrimaryPrivateIpAddress]
     Description: Nomad-B Private IP
+    Export:
+      Name: ConsulBPrivateIp
 
   NomadInterfaceC:
     Value: !Ref NomadInterfaceC
@@ -348,6 +358,8 @@ Outputs:
   NomadPrivateIPAddressC:
     Value: !GetAtt [NomadInterfaceC, PrimaryPrivateIpAddress]
     Description: Nomad-C Private IP
+    Export:
+      Name: ConsulCPrivateIp
 
   NomadMasterInstanceProfile:
     Value: !Ref NomadMasterInstanceProfile

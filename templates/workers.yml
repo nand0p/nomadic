@@ -72,7 +72,7 @@ Resources:
               owner: root
               group: root
             /etc/init.d/consul:
-              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul_sysv.rc
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul_worker.rc
               mode: '000755'
               owner: root
               group: root
