@@ -30,7 +30,6 @@ Resources:
           Fn::Base64: !Sub |
             #!/bin/bash -xe
             yum -y update
-            yum install -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource NomadMasterLaunchTemplate --configsets full_install --region ${AWS::Region}
     Metadata:
       AWS::CloudFormation::Init:

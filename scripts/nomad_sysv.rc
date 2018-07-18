@@ -10,12 +10,13 @@ PROG_BIN=/usr/local/bin/$PROG
 PROG_LOCKFILE=/var/lock/subsys/$PROG
 PROG_LOGFILE=/var/log/$PROG.log
 PROG_PIDFILE=/var/run/$PROG.pid
+PROG_CONFIG=/root/nomad_master.hcl
 
 start() {
   started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
   [[ $started =~ running ]] && echo $started && return 1
   echo "Starting $PROG "
-  nohup $PROG_BIN \
+  nohup $PROG_BIN -config $PROG_CONFIG
 }
 
 stop() {

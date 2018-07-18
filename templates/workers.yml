@@ -51,7 +51,21 @@ Resources:
         install_consul_worker:
           files:
             /root/consul.zip:
-              source: !Sub wget https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              source: !Sub https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+            /root/consul_config.json:
+              content: !Sub |
+                {
+                  "datacenter": "dc1",
+                  "data_dir": "/root/consul",
+                  "log_level": "INFO",
+                  "server": false,
+                  "retry_join": $CONSUL_LEADER
+                }
+              context:
+                CONSUL_LEADER: !Ref ConsulLeader
               mode: '000644'
               owner: root
               group: root
@@ -63,8 +77,6 @@ Resources:
           commands:
             01-install-consul:
               command: unzip /root/consul.zip -d /usr/local/bin
-            #02-run-consul:
-            #  command: /usr/local/bin/consul agent -advertise $(curl http://169.254.169.254/latest/meta-data/local-ipv4) -data-dir consul-data -join ${ConsulLeader} > consul.log &
           services:
             sysvinit:
               consul:
@@ -141,9 +153,8 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
           yum -y update
-          yum install -y aws-cfn-bootstrap
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource WebServerGroup --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource NomadWorkerASG --region ${AWS::Region}
 
 
   NomadWorkerASG:

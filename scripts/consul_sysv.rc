@@ -10,12 +10,16 @@ PROG_BIN=/usr/local/bin/$PROG
 PROG_LOCKFILE=/var/lock/subsys/$PROG
 PROG_LOGFILE=/var/log/$PROG.log
 PROG_PIDFILE=/var/run/$PROG.pid
+PROG_CONFIGFILE=/root/consul_config.json
+
+IP_ADDRESS=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+CONSUL_LEADER=10.10.10.137
 
 start() {
   started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
   [[ $started =~ running ]] && echo $started && return 1
   echo "Starting $PROG "
-  nohup $PROG_BIN \
+  nohup $PROG_BIN agent -config $PROG_CONFIGFILE -client $IP_ADDRESS -advertise $IP_ADDRESS -data-dir consul-data -join $CONSUL_LEADER >>$PROG_LOGFILE 2>&1 &
 }
 
 stop() {
