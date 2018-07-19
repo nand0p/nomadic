@@ -25,9 +25,7 @@ case $1 in
     echo "Stopping $PROG "
     killproc -p "$PROG_PIDFILE" "$PROG_BIN"
     RETVAL=$?
-    echo
     [ $RETVAL -eq 0 ] && rm -f "$PROG_LOCKFILE"
-    return $RETVAL
   ;;
   status)
     $PROG_BIN server members
