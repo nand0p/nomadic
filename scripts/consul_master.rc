@@ -17,7 +17,7 @@ case $1 in
     started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
     [[ $started =~ running ]] && echo $started && RETVAL=1
     echo "Starting $PROG "
-    nohup $PROG_BIN agent -config-file $PROG_CONFIGFILE -bind 0.0.0.0 -advertise $IP_ADDRESS -data-dir consul-data -server -ui -bootstrap >>$PROG_LOGFILE 2>&1 &
+    nohup $PROG_BIN agent -config-file $PROG_CONFIGFILE -bind 0.0.0.0 -advertise $IP_ADDRESS -data-dir consul-data -server -ui >>$PROG_LOGFILE 2>&1 &
     RETVAL=$?
     echo $! > $PROG_PIDFILE
     [[ $RETVAL ]] && touch "$PROG_LOCKFILE"
