@@ -230,6 +230,17 @@ Resources:
       SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
 
 
+  NomadWorkerIngressDockerTCPworker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: docker-tcp-worker
+      FromPort: 20000
+      ToPort: 32000
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
   NomadLoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
