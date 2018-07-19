@@ -13,9 +13,6 @@ Parameters:
     Type: String
   ConsulVersion:
     Type: String
-  ConsulLeader:
-    Type: String
-    Default: 10.10.10.137
 
 
 Resources:
@@ -24,7 +21,14 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          full_install: [install_cfn, install_docker, install_consul_worker, install_nomad_worker, install_fabio, run_microservice, verify_workers]
+          full_install:
+            - install_cfn
+            - install_docker
+            - install_consul_worker
+            - install_nomad_worker
+            - install_fabio
+            - run_microservice
+            - verify_workers
         install_cfn:
           files:
             /etc/cfn/cfn-hup.conf:
@@ -67,7 +71,7 @@ Resources:
                   ]
                 }
               context:
-                CONSUL_LEADER: !Ref ConsulLeader
+                CONSUL_LEADER: !ImportValue ConsulAPrivateIp
               mode: '000644'
               owner: root
               group: root
@@ -157,12 +161,12 @@ Resources:
               command: /usr/local/bin/nomad run /root/hello-world.hcl
         verify_workers:
           commands:
-            ELBHealthCheck:
-              command: !Sub
-                'until [ "$state" == "\"InService\"" ]; do state=$(aws --region ${AWS::Region} elb describe-instance-health
-                 --load-balancer-name ${NomadLoadBalancer}
-                 --instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-                 --query InstanceStates[0].State); sleep 10; done'
+            00-check-docker:
+              command: service docker status
+            01-check-consul:
+              command: service consul status
+            02-check-nomad:
+              command: service nomad status
     Properties:
       AssociatePublicIpAddress: True
       EbsOptimized: False
@@ -177,7 +181,7 @@ Resources:
           #!/bin/bash -xe
           yum -y update
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource NomadWorkerLaunchConfiguration --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource NomadWorkerASG --region ${AWS::Region}
 
 
   NomadWorkerASG:
@@ -185,7 +189,7 @@ Resources:
     Properties:
       Cooldown: 1
       DesiredCapacity: 3
-      HealthCheckGracePeriod: 15
+      HealthCheckGracePeriod: 30
       HealthCheckType: ELB
       LaunchConfigurationName: !Ref NomadWorkerLaunchConfiguration
       LoadBalancerNames:
