@@ -135,23 +135,19 @@ Resources:
         ToPort: 4647
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
       - IpProtocol: udp
-        FromPort: 8301
+        FromPort: 8300
         ToPort: 8302
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
       - IpProtocol: tcp
         FromPort: 8300
         ToPort: 8302
         SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
-      - IpProtocol: tcp
-        FromPort: 9998
-        ToPort: 9999
-        CidrIp: !Ref TrustedCidr
 
 
   NomadMasterIngressTCP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: nomad-tcp
+      Description: nomad-tcp-master-master
       FromPort: 4647
       ToPort: 4648
       GroupId: !Ref NomadMasterSecurityGroup
@@ -162,7 +158,7 @@ Resources:
   NomadMasterIngressUDP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: nomad-udp
+      Description: nomad-udp-master-master
       FromPort: 4648
       ToPort: 4648
       GroupId: !Ref NomadMasterSecurityGroup
@@ -173,9 +169,20 @@ Resources:
   NomadMasterIngressConsulTCP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: consul-tcp
+      Description: consul-tcp-master-master
       FromPort: 8300
-      ToPort: 8301
+      ToPort: 8302
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadMasterIngressConsulTCP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-udp-master-master
+      FromPort: 8300
+      ToPort: 8302
       GroupId: !Ref NomadMasterSecurityGroup
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
@@ -192,6 +199,10 @@ Resources:
         ToPort: 22
         CidrIp: !Ref TrustedCidr
       - IpProtocol: tcp
+        FromPort: 9998
+        ToPort: 9999
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
         FromPort: 9999
         ToPort: 9999
         SourceSecurityGroupId: !Ref NomadLoadBalancerSecurityGroup
@@ -200,9 +211,9 @@ Resources:
   NomadWorkerIngressConsulTCPmaster:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: consul-tcp-master
-      FromPort: 8301
-      ToPort: 8301
+      Description: consul-tcp-worker-master
+      FromPort: 8300
+      ToPort: 8302
       GroupId: !Ref NomadWorkerSecurityGroup
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
@@ -211,9 +222,9 @@ Resources:
   NomadWorkerIngressConsulUDPmaster:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: consul-udp-master
-      FromPort: 8301
-      ToPort: 8301
+      Description: consul-udp-worker-master
+      FromPort: 8300
+      ToPort: 8302
       GroupId: !Ref NomadWorkerSecurityGroup
       IpProtocol: udp
       SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
@@ -222,18 +233,29 @@ Resources:
   NomadWorkerIngressConsulTCPworker:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: consul-tcp-worker
-      FromPort: 8301
-      ToPort: 8301
+      Description: consul-tcp-worker-worker
+      FromPort: 8300
+      ToPort: 8302
       GroupId: !Ref NomadWorkerSecurityGroup
       IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
+  NomadWorkerIngressConsulUDPworker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-udp-worker-worker
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: udp
       SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
 
 
   NomadWorkerIngressDockerTCPworker:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      Description: docker-tcp-worker
+      Description: docker-tcp-worker-worker
       FromPort: 20000
       ToPort: 32000
       GroupId: !Ref NomadWorkerSecurityGroup

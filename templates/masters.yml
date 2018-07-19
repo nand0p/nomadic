@@ -105,7 +105,7 @@ Resources:
               mode: '000644'
               owner: root
               group: root
-            /root/nomad_masters.hcl:
+            /root/nomad_master.hcl:
               content: |
                 data_dir = "/root/nomad-data"
                 server {

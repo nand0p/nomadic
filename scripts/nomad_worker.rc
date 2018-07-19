@@ -13,18 +13,19 @@ PROG_CONFIG=/root/nomad_worker.hcl
 
 case $1 in
   start)
-    started=$(status -p "$PROG_PIDFILE" "$PROG_BIN")
-    [[ $started =~ running ]] && echo $started && return 1
+    started=$(status -p $PROG_PIDFILE $PROG_BIN)
+    [[ $started =~ running ]] && echo $started && RETVAL=1
     echo "Starting $PROG "
     nohup $PROG_BIN agent -config $PROG_CONFIG >>$PROG_LOGFILE 2>&1 &
+    RETVAL=$?
+    echo $! > $PROG_PIDFILE
+    [[ $RETVAL ]] && touch $PROG_LOCKFILE
   ;;
   stop)
     echo "Stopping $PROG "
-    killproc -p "$PROG_PIDFILE" "$PROG_BIN"
+    killproc -p $PROG_PIDFILE $PROG_BIN
     RETVAL=$?
-    echo
-    [ $RETVAL -eq 0 ] && rm -f "$PROG_LOCKFILE"
-    return $RETVAL
+    [ $RETVAL -eq 0 ] && rm -f $PROG_LOCKFILE
   ;;
   status)
     $PROG_BIN agent-info
