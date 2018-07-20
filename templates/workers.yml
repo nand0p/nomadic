@@ -195,6 +195,8 @@ Resources:
       LoadBalancerNames:
         - !Ref NomadLoadBalancer
       MaxSize: 10
+      MetricsCollection:
+        - Granularity: 1Minute
       MinSize: 1
       Tags:
         - PropagateAtLaunch: True
@@ -213,6 +215,17 @@ Resources:
         Timeout: PT10M
       AutoScalingCreationPolicy:
         MinSuccessfulInstancesPercent: 100
+
+
+  NomadWorkerScalingPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AutoScalingGroupName: !Ref NomadWorkerASG
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 75
 
 
   NomadLoadBalancer:
@@ -267,6 +280,12 @@ Resources:
 #      Port: '80'
 #      Protocol: HTTP
 
+
+  NomadWorkerDashboard:
+    Type: "AWS::CloudWatch::Dashboard"
+    Properties:
+      DashboardName: NomadWorkerDashboard
+      DashboardBody: !Sub "{\"widgets\":[{\"type\":\"metric\",\"x\":0,\"y\":0,\"width\":24,\"height\":9,\"properties\":{\"view\":\"timeSeries\",\"stacked\":false,\"metrics\":[[\"AWS/EC2\",\"CPUUtilization\",\"AutoScalingGroupName\",\"${NomadWorkerASG}\"]],\"region\":\"us-east-1\"}}]}"
 
 
 Outputs:
