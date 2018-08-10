@@ -74,14 +74,15 @@ Resources:
               content: !Sub |
                 {
                   "datacenter": "dc1",
-                  "data_dir": "/root/consul",
+                  "data_dir": "/root/consul-data",
                   "log_level": "INFO",
-                  "server": false,
+                  "server": true,
                   "retry_join": [
                     "{{ CONSUL_A_IP }}",
                     "{{ CONSUL_B_IP }}",
                     "{{ CONSUL_C_IP }}"
-                  ]
+                  ],
+                  "bootstrap-expect": "3"
                 }
               context:
                 CONSUL_A_IP: !ImportValue ConsulAPrivateIp
