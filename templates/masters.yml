@@ -81,8 +81,7 @@ Resources:
                     "{{ CONSUL_A_IP }}",
                     "{{ CONSUL_B_IP }}",
                     "{{ CONSUL_C_IP }}"
-                  ],
-                  "bootstrap-expect": "3"
+                  ]
                 }
               context:
                 CONSUL_A_IP: !ImportValue ConsulAPrivateIp
