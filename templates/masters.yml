@@ -111,6 +111,13 @@ Resources:
                 server {
                   enabled = true
                   bootstrap_expect = 3
+                  server_join {
+                    retry_join = [
+                      "{{ NOMAD_A_IP }}:4648",
+                      "{{ NOMAD_B_IP }}:4648",
+                      "{{ NOMAD_C_IP }}:4648"
+                    ]
+                  }
                 }
                 client {
                   enabled = false
@@ -118,6 +125,10 @@ Resources:
                 consul {
                   address = "localhost:8500"
                 }
+              context:
+                NOMAD_A_IP: !ImportValue ConsulAPrivateIp
+                NOMAD_B_IP: !ImportValue ConsulBPrivateIp
+                NOMAD_C_IP: !ImportValue ConsulCPrivateIp
               mode: '000644'
               owner: root
               group: root

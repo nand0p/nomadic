@@ -63,7 +63,7 @@ Resources:
               content: !Sub |
                 {
                   "datacenter": "dc1",
-                  "data_dir": "/root/consul",
+                  "data_dir": "/root",
                   "log_level": "INFO",
                   "server": false,
                   "retry_join": [
@@ -76,6 +76,8 @@ Resources:
               owner: root
               group: root
             /etc/init.d/consul:
+              context:
+                CONSUL_LEADER_TOKEN: !ImportValue ConsulAPrivateIp
               source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul_worker.rc
               mode: '000755'
               owner: root
