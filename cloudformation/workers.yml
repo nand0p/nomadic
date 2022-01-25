@@ -1,0 +1,296 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Nomad Cluster Workers
+
+
+Parameters:
+  ImageId:
+    Type: String
+  InstanceType:
+    Type: String
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  NomadVersion:
+    Type: String
+  ConsulVersion:
+    Type: String
+
+
+Resources:
+  NomadWorkerLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          full_install:
+            - install_cfn
+            - install_docker
+            - install_consul_worker
+            - install_nomad_worker
+            - install_fabio
+            - run_microservice
+            - verify_workers
+        install_cfn:
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.LaunchConfig.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
+                runas=root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+        install_consul_worker:
+          files:
+            /root/consul.zip:
+              source: !Sub https://releases.hashicorp.com/consul/${ConsulVersion}/consul_${ConsulVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+            /root/consul_config.json:
+              content: !Sub |
+                {
+                  "datacenter": "dc1",
+                  "data_dir": "/root",
+                  "log_level": "INFO",
+                  "server": false,
+                  "retry_join": [
+                    "{{ CONSUL_LEADER }}"
+                  ]
+                }
+              context:
+                CONSUL_LEADER: !ImportValue ConsulAPrivateIp
+              mode: '000644'
+              owner: root
+              group: root
+            /etc/init.d/consul:
+              context:
+                CONSUL_LEADER_TOKEN: !ImportValue ConsulAPrivateIp
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/consul_worker.rc
+              mode: '000755'
+              owner: root
+              group: root
+          commands:
+            01-install-consul:
+              command: unzip /root/consul.zip -d /usr/local/bin
+          services:
+            sysvinit:
+              consul:
+                enabled: true
+                ensureRunning: true
+        install_docker:
+          packages:
+            yum:
+              wget: []
+              jq: []
+              docker: []
+          users:
+            ec2-user:
+              groups:
+                - docker
+          services:
+            sysvinit:
+              docker:
+                enabled: true
+                ensureRunning: true
+        install_nomad_worker:
+          files:
+            /root/nomad.zip:
+              source: !Sub https://releases.hashicorp.com/nomad/${NomadVersion}/nomad_${NomadVersion}_linux_amd64.zip
+              mode: '000644'
+              owner: root
+              group: root
+            /root/nomad_worker.hcl:
+              content: |
+                data_dir = "/root/nomad-data"
+                server {
+                  enabled = false
+                }
+                client {
+                  enabled = true
+                }
+                consul {
+                  address = "localhost:8500"
+                }
+              mode: '000644'
+              owner: root
+              group: root
+            /root/fabio.hcl:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/jobs/fabio.hcl
+              mode: '000644'
+              owner: root
+              group: root
+            /etc/init.d/nomad:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/scripts/nomad_worker.rc
+              owner: root
+              group: root
+              mode: '000755'
+          commands:
+            01-Install-Nomad:
+              command: unzip /root/nomad.zip -d /usr/local/bin
+          services:
+            sysvinit:
+              nomad:
+                enabled: true
+                ensureRunning: true
+        install_fabio:
+          commands:
+            00-wait-for-nomad:
+              command: sleep 2
+            01-install-fabio-routing-mesh:
+              command: /usr/local/bin/nomad run /root/fabio.hcl
+        run_microservice:
+          files:
+            /root/hello-world.hcl:
+              source: https://raw.githubusercontent.com/nand0p/nomadic/master/jobs/hello-world.hcl
+              owner: root
+              group: root
+              mode: '000644'
+          commands:
+            00-run-hello-world:
+              command: /usr/local/bin/nomad run /root/hello-world.hcl
+        verify_workers:
+          commands:
+            00-check-docker:
+              command: service docker status
+            01-check-consul:
+              command: service consul status
+            02-check-nomad:
+              command: service nomad status
+    Properties:
+      AssociatePublicIpAddress: True
+      EbsOptimized: False
+      IamInstanceProfile: !ImportValue NomadWorkerInstanceProfile
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !ImportValue NomadWorkerSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum -y update
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource NomadWorkerLaunchConfiguration --configsets full_install --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource NomadWorkerASG --region ${AWS::Region}
+
+
+  NomadWorkerASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      Cooldown: 1
+      DesiredCapacity: 3
+      HealthCheckGracePeriod: 30
+      HealthCheckType: ELB
+      LaunchConfigurationName: !Ref NomadWorkerLaunchConfiguration
+      LoadBalancerNames:
+        - !Ref NomadLoadBalancer
+      MaxSize: 10
+      MetricsCollection:
+        - Granularity: 1Minute
+      MinSize: 1
+      Tags:
+        - PropagateAtLaunch: True
+          Key: Name
+          Value: Nomad-Worker
+      VPCZoneIdentifier:
+        - !ImportValue NomadPublicSubnet
+      #TargetGroupARNs:
+      #  - String
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: True
+    CreationPolicy:
+      ResourceSignal:
+        Count: 3
+        Timeout: PT10M
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+
+
+  NomadWorkerScalingPolicy:
+    Type: "AWS::AutoScaling::ScalingPolicy"
+    Properties:
+      AutoScalingGroupName: !Ref NomadWorkerASG
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 75
+
+
+  NomadLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '9999'
+          Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:9999/
+        HealthyThreshold: '4'
+        UnhealthyThreshold: '10'
+        Interval: '10'
+        Timeout: '5'
+      Scheme: internet-facing
+      SecurityGroups:
+        - !ImportValue NomadLoadBalancerSecurityGroup
+      Subnets:
+        - !ImportValue NomadPublicSubnet
+
+
+# NOTE: V2 LBs require 2 subnets
+#  FabioLoadBalancer:
+#    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+#    Properties:
+#      SecurityGroups:
+#        - !Ref TrustedSecurityGroup
+#      Scheme: internet-facing
+#      Subnets:
+#        - !Ref PublicSubnet
+#      Type: application
+#      IpAddressType: ipv4
+#
+#
+#  FabioTargetGroup:
+#    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+#    Properties:
+#      Port: 9999
+#      Protocol: HTTP
+#      TargetType: ip
+#      VpcId: !Ref VPC
+#
+#
+#  FabioListener:
+#    Type: AWS::ElasticLoadBalancingV2::Listener
+#    Properties:
+#      DefaultActions:
+#        - Type: forward
+#          TargetGroupArn: !Ref FabioTargetGroup
+#      LoadBalancerArn: !Ref FabioLoadBalancer
+#      Port: '80'
+#      Protocol: HTTP
+
+
+  NomadWorkerDashboard:
+    Type: "AWS::CloudWatch::Dashboard"
+    Properties:
+      DashboardName: NomadWorkerDashboard
+      DashboardBody: !Sub "{\"widgets\":[{\"type\":\"metric\",\"x\":0,\"y\":0,\"width\":24,\"height\":9,\"properties\":{\"view\":\"timeSeries\",\"stacked\":false,\"metrics\":[[\"AWS/EC2\",\"CPUUtilization\",\"AutoScalingGroupName\",\"${NomadWorkerASG}\"]],\"region\":\"us-east-1\"}}]}"
+
+
+Outputs:
+  NomadLoadBalancer:
+    Value: !GetAtt [NomadLoadBalancer, DNSName]
+    Description: FQDN of Nomad Frontend
