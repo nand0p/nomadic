@@ -2,7 +2,7 @@
 
 ### Why run containers on Hashicorp code?  
 
-Nomadic is a Terraform framework to deploy Hashicorp minimal and secure container clusters.  Hashicorp ensures your dockers are up and running (fail-over for fault tolerance), and running securely (secrets rotation and aws security). The internet is a dangerous place. Warship Not Whale.
+Nomadic is a Terraform framework to deploy Hashicorp minimal and secure container clusters.  Hashicorp ensures your dockers are up and running (fail-over for fault tolerance), and running securely (secrets rotation and aws security). The Internet is a dangerous place. **Warship Not Whale**.
 
 
 ### Nomadic Framework
