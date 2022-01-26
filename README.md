@@ -16,13 +16,13 @@ Nomadic is a Terraform framework to deploy Hashicorp minimal and secure containe
 
 Nomadic Terraform code deploys a (3) node EC2 instance cluster to implement the minimal deployment footprint possible to support running containers on Hashicorp code. The following services run on each Nomadic cluster node:
 
-  1. Vault server (one instance in primary, two in standby)
-  2. Consul server
-  3. Nomad server
-  4. Consul client
-  5. Nomad client.
+1. Vault server (one instance in primary, two in standby).
+2. Consul server.
+3. Nomad server.
+4. Consul client.
+5. Nomad client.
 
-All these services run on each EC2 instance cluster node. Auto-scaling allows the cluster clients to scale out, as needed by load. By default, Nomadic deploys all these services on (3) EC2 servers only. Nomad and Consul use raft and EC2 autodiscovery for cluster convergence.
+All these services run on each EC2 instance cluster node. Auto-scaling allows the cluster clients to scale out, as needed by load. By default, Nomadic deploys all these services on (3) EC2 servers only. Nomad and Consul use the Raft protocol and EC2 autodiscovery for cluster convergence.
 
 
 ### Nomadic Deployment
@@ -41,10 +41,10 @@ Each Pilgrim Application contains the following resources:
 
 1. EFS volume created and configured, including Route53 DNS entry.
 2. ELB frontend created and configured, including Route53 DNS entry.
-3. CodePipeline pipeline.
-  - Unit and Integration pre-deployment test stages
-  - Deploy and/or Update Dockers via Nomad API
-  - Security and Acceptance post-deployment test stages
+3. CodePipeline pipeline:
+   1. Unit and Integration pre-deployment test stages
+   2. Deploy and/or Update Dockers via Nomad API
+   3. Security and Acceptance post-deployment test stages
 
 
 ### Pilgrim Deployment
