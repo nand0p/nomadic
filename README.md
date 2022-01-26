@@ -25,18 +25,12 @@ Nomadic Terraform code deploys a (3) node EC2 instance cluster to implement the 
 All these services run on each EC2 instance cluster node. Auto-scaling allows the cluster clients to scale out, as needed by load. By default, Nomadic deploys all these services on (3) EC2 servers only. Nomad and Consul use raft and EC2 autodiscovery for cluster convergence.
 
 
-
-
-
 ### Nomadic Deployment
 
 Deploying the cluster
 
 1. set variables in `terraform.tfvars`
-
 2. `terraform apply`
-
-
 
 
 ### Nomadic Pilgrims and Pilgrim Pipelines
@@ -46,12 +40,10 @@ Pilgrims are a collection of resources that make up an application, including th
 Each Pilgrim Application contains the following resources:
 
 1. EFS volume created and configured, including Route53 DNS entry.
-
 2. ELB frontend created and configured, including Route53 DNS entry.
-
 3. CodePipeline pipeline.
   - Unit and Integration pre-deployment test stages
-  - Deploy / Update Nomad task job via Nomad API
+  - Deploy and/or Update Dockers via Nomad API
   - Security and Acceptance post-deployment test stages
 
 
@@ -60,3 +52,8 @@ Each Pilgrim Application contains the following resources:
 To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template for your pilgrim application directory. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, execute `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the pilgrim application by updating the Nomad job.
 
 As each pilgrim is just a collection of Terraform resources, advanced users can use Terraform Remote State to manage Nomadic Pilgrims, as opposed to maintaining an application deployment directory.
+
+
+### Nomadic Support
+
+Nomadic support is available **nomadic at hex7 dot com**.
