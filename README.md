@@ -5,7 +5,16 @@
 Nomadic is a Terraform framework to deploy Hashicorp minimal and secure container clusters.  Hashicorp ensures your dockers are up and running (fail-over for fault tolerance), and running securely (secrets rotation and aws security). The internet is a dangerous place. Warship Not Whale.
 
 
-Nomadic framework deploys a (3) node EC2 instance cluster to implement the minimal deployment footprint possibleto support running containers on Hashicorp code. The following services run on each node:
+### Nomadic Framework
+
+1. Terraform IaC provisioning of cluster resources.
+2. Optional VPC creation (incl. associated VPC resources).
+3. Server bootstrapping via Ansible and cloud-init.
+4. Consul provides container application registration.
+5. Vault provides container application secrets.
+6. Nomad provides container application scheduling.
+
+Nomadic Terraform code deploys a (3) node EC2 instance cluster to implement the minimal deployment footprint possible to support running containers on Hashicorp code. The following services run on each Nomadic cluster node:
 
   1. Vault server (one instance in primary, two in standby)
   2. Consul server
@@ -16,19 +25,6 @@ Nomadic framework deploys a (3) node EC2 instance cluster to implement the minim
 All these services run on each EC2 instance cluster node. Auto-scaling allows the cluster clients to scale out, as needed by load. By default, Nomadic deploys all these services on (3) EC2 servers only. Nomad and Consul use raft and EC2 autodiscovery for cluster convergence.
 
 
-The basic structure of the Nomadic framework is as follows:
-
-1. Terraform IaC provisioning of cluster resources.
-
-2. Optional VPC creation (incl. associated VPC resources).
-
-3. Server bootstrapping via Ansible and cloud-init.
-
-4. Consul provides container application registration.
-
-5. Vault provides container application secrets.
-
-6. Nomad schedules and runs containers.
 
 
 
@@ -45,7 +41,7 @@ Deploying the cluster
 
 ### Nomadic Pilgrims and Pilgrim Pipelines
 
-Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. Each application is a unique pilgrim. Codepipeline runs a pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, if needed.  Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds, of times a day.
+Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. Each application is a unique pilgrim, on a unique journey. Codepipeline runs a pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, if needed.  Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds, of times a day.
 
 Each Pilgrim Application contains the following resources:
 
