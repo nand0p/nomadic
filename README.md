@@ -59,3 +59,4 @@ As each pilgrim is just a collection of Terraform resources, advanced users can 
 Nomadic support is available `nomadic at hex7 dot com`.
 
 ### Warship Not Whale.
+![alt text](https://github.com/nand0p/nomadic/blob/terraform-001/app/nomadic.png?raw=true)
