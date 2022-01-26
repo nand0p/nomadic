@@ -30,7 +30,9 @@ All these services run on each EC2 instance cluster node. Auto-scaling allows th
 Deploying the cluster
 
 1. set variables in `terraform.tfvars`
-2. `terraform apply`
+2. `terraform init`
+3. `terraform plan`
+4. `terraform apply`
 
 
 ### Nomadic Pilgrims and Pilgrim Pipelines
@@ -49,7 +51,7 @@ Each Pilgrim Application contains the following resources:
 
 ### Pilgrim Deployment
 
-To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template for your pilgrim application directory. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, execute `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the pilgrim application by updating the Nomad job.
+To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template for your pilgrim application directory. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, execute `terraform init` and `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the pilgrim application by updating the Nomad job.
 
 As each pilgrim is just a collection of Terraform resources, advanced users can use Terraform Remote State to manage Nomadic Pilgrims, as opposed to maintaining an application deployment directory.
 

@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": [
+                "cloudwatch:*",
+                "ec2:Describe*",
+                "ec2:Get*",
+                "iam:Get*",
+                "iam:List*",
+                "logs:PutLogEvents",
+                "logs:CreateLogStream",
+                "logs:CreateLogGroup",
+                "logs:Describe*",
+                "logs:FilterLogEvents",
+                "logs:Get*",
+                "logs:List*",
+                "ssm:Describe*",
+                "ssm:Get*",
+                "sts:Get*",
+                "tag:Get*"
+    ],
+    "Resource": "*"
+  }
+}
