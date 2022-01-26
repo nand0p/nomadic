@@ -56,4 +56,5 @@ As each pilgrim is just a collection of Terraform resources, advanced users can 
 
 ### Nomadic Support
 
-Nomadic support is available **nomadic at hex7 dot com**.
+Nomadic support is available `nomadic at hex7 dot com`.
+**Warship Not Whale**
