@@ -2,7 +2,7 @@
 
 ### Why run containers on Hashicorp code?  
 
-Nomadic is a Terraform framework to deploy Hashicorp minimal and secure container clusters.  Hashicorp ensures your dockers are up and running (fail-over for fault tolerance), and running securely (secrets rotation and aws security). The Internet is a dangerous place. **Warship Not Whale**.
+Nomadic is a Terraform framework to deploy Hashicorp minimal and secure container clusters.  Hashicorp ensures your dockers are up and running (fail-over for fault tolerance), and running securely (secrets rotation and AWS security). The Internet is a dangerous place. **Warship Not Whale**.
 
 
 ### Nomadic Framework
@@ -41,7 +41,7 @@ Deploying the cluster
 
 ### Nomadic Pilgrims and Pilgrim Pipelines
 
-Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. Each application is a unique pilgrim, on a unique journey. Codepipeline runs a pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, if needed.  Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds, of times a day.
+Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. Each application is a unique pilgrim, on a unique journey. Codepipeline runs a pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, if needed.  Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds of times a day.
 
 Each Pilgrim Application contains the following resources:
 
@@ -49,13 +49,14 @@ Each Pilgrim Application contains the following resources:
 
 2. ELB frontend created and configured, including Route53 DNS entry.
 
-3. Codepipeline Pipeline creation and/or execution.
-  - Deploy / Update Nomad task job 
+3. CodePipeline pipeline.
+  - Unit and Integration pre-deployment test stages
+  - Deploy / Update Nomad task job via Nomad API
   - Security and Acceptance post-deployment test stages
 
 
 ### Pilgrim Deployment
 
-To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template for your pilgrim application. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the pilgrim application by updating the Nomad job.
+To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template for your pilgrim application directory. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, execute `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the pilgrim application by updating the Nomad job.
 
 As each pilgrim is just a collection of Terraform resources, advanced users can use Terraform Remote State to manage Nomadic Pilgrims, as opposed to maintaining an application deployment directory.
