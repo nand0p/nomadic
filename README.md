@@ -41,7 +41,7 @@ Deploying the cluster
 
 ### Nomadic Pilgrims and Pilgrim Pipelines
 
-Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. Each application is a unique pilgrim, on a unique journey. Codepipeline runs a pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, if needed.  Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds of times a day.
+Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. **Each application is a unique pilgrim, on a unique journey**. CodePipeline runs a unique pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, only if needed.  Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds or thousands of times a day.
 
 Each Pilgrim Application contains the following resources:
 
