@@ -1,0 +1,12 @@
+{
+  "datacenter": "dc1",
+  "data_dir": "/root/consul-data",
+  "log_level": "INFO",
+  "server": true,
+  "retry_join": [
+    "{{ CONSUL_ONE_IP }}",
+    "{{ CONSUL_TWO_IP }}",
+    "{{ CONSUL_THREE_IP }}"
+  ],
+  "bootstrap_expect": 3
+}

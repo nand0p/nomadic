@@ -127,10 +127,11 @@ resource "aws_security_group_rule" "allow_vault_api" {
 resource "aws_iam_instance_profile" "nomadic" {
   count = var.nomadic_instance_profile_name == "" ? 1 : 0
   name  = var.stack_name
-  role  = aws_iam_role.nomadic.name
+  role  = aws_iam_role.nomadic[0].name
 }
 
 resource "aws_iam_role" "nomadic" {
+  count              = var.nomadic_instance_profile_name == "" ? 1 : 0
   name               = var.stack_name
   path               = "/"
   assume_role_policy = data.aws_iam_policy_document.nomadic.json
@@ -148,7 +149,8 @@ data "aws_iam_policy_document" "nomadic" {
 }
 
 resource "aws_iam_role_policy" "nomadic" {
+  count  = var.nomadic_instance_profile_name == "" ? 1 : 0
   name   = var.stack_name
-  role   = aws_iam_role.nomadic.name
-  policy = file("nomadic_assume_role_policy.json")
+  role   = aws_iam_role.nomadic[0].name
+  policy = file("${abspath(path.root)}/nomadic_iam_policy.json")
 }

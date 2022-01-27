@@ -212,3 +212,4 @@ Outputs:
   NomadMasterC:
     Value: !Ref NomadMasterC
     Description: Nomad-Master-C InstanceId
+

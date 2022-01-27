@@ -8,16 +8,30 @@ data "aws_ami" "nomadic" {
  }
 }
 
+data "template_file" "nomadic_boot" {
+  template = file("${abspath(path.root)}/boot_scripts/nomadic.sh")
+  vars = {
+    BRANCH = "terraform-001"
+    CONSUL_VERSION = "1.11.2"
+    NOMAD_VERSION = "1.2.4"
+    VAULT_VERSION = "1.9.2"
+    PRIVATE_IP_ONE = var.nomadic_cluster_ip_one
+    PRIVATE_IP_TWO = var.nomadic_cluster_ip_two
+    PRIVATE_IP_THREE = var.nomadic_cluster_ip_three
+  }
+}
+
 resource "aws_instance" "nomadic_one" {
   ami                         = var.nomadic_ami_id == "" ? data.aws_ami.nomadic.id : var.nomadic_ami_id
   instance_type               = var.nomadic_instance_size
   key_name                    = var.key_name
   subnet_id                   = local.subnet_id_one
-  associate_public_ip_address = false
   vpc_security_group_ids      = [local.secgroup_id]
   iam_instance_profile        = aws_iam_instance_profile.nomadic[0].name
   availability_zone           = var.nomadic_availability_zone_one
-  user_data                   = file("${abspath(path.root)}/boot_scripts/nomadic_one.sh")
+  private_ip                  = var.nomadic_cluster_ip_one
+  user_data                   = data.template_file.nomadic_boot.rendered
+  associate_public_ip_address = var.allow_public_ip
   tags                        = var.tags
 
   root_block_device {
@@ -28,15 +42,17 @@ resource "aws_instance" "nomadic_one" {
 }
 
 resource "aws_instance" "nomadic_two" {
-  ami                    = var.nomadic_ami_id == "" ? data.aws_ami.nomadic.id : var.nomadic_ami_id
-  instance_type          = var.nomadic_instance_size
-  key_name               = var.key_name
-  subnet_id              = local.subnet_id_two
-  vpc_security_group_ids = [local.secgroup_id]
-  iam_instance_profile   = aws_iam_instance_profile.nomadic[0].name
-  availability_zone      = var.nomadic_availability_zone_two
-  user_data              = file("${abspath(path.root)}/boot_scripts/nomadic_two.sh")
-  tags                   = var.tags
+  ami                         = var.nomadic_ami_id == "" ? data.aws_ami.nomadic.id : var.nomadic_ami_id
+  instance_type               = var.nomadic_instance_size
+  key_name                    = var.key_name
+  subnet_id                   = local.subnet_id_two
+  vpc_security_group_ids      = [local.secgroup_id]
+  iam_instance_profile        = aws_iam_instance_profile.nomadic[0].name
+  availability_zone           = var.nomadic_availability_zone_two
+  private_ip                  = var.nomadic_cluster_ip_two
+  user_data                   = data.template_file.nomadic_boot.rendered
+  associate_public_ip_address = var.allow_public_ip
+  tags                        = var.tags
 
   root_block_device {
     volume_size = var.root_volume_size
@@ -53,7 +69,9 @@ resource "aws_instance" "nomadic_three" {
   vpc_security_group_ids      = [local.secgroup_id]
   iam_instance_profile        = aws_iam_instance_profile.nomadic[0].name
   availability_zone           = var.nomadic_availability_zone_three
-  user_data                   = file("${abspath(path.root)}/boot_scripts/nomadic_three.sh")
+  private_ip                  = var.nomadic_cluster_ip_three
+  user_data                   = data.template_file.nomadic_boot.rendered
+  associate_public_ip_address = var.allow_public_ip
   tags                        = var.tags
 
   root_block_device {
@@ -61,44 +79,4 @@ resource "aws_instance" "nomadic_three" {
     volume_type = var.root_volume_type
     tags        = var.tags
   }
-}
-
-output "nomadic_one_instance_id" {
-  value = aws_instance.nomadic_one.id
-}
-
-output "nomadic_two_instance_id" {
-  value = aws_instance.nomadic_two.id
-}
-
-output "nomadic_three_instance_id" {
-  value = aws_instance.nomadic_three.id
-}
-
-output "nomadic_one_private_ip" {
-  value = aws_instance.nomadic_one.private_ip
-}
-
-output "nomadic_two_private_ip" {
-  value = aws_instance.nomadic_two.private_ip
-}
-
-output "nomadic_three_private_ip" {
-  value = aws_instance.nomadic_three.private_ip
-}
-
-output "nomadic_one_public_ip" {
-  value = aws_instance.nomadic_one.public_ip
-}
-
-output "nomadic_two_public_ip" {
-  value = aws_instance.nomadic_two.public_ip
-}
-
-output "nomadic_three_public_ip" {
-  value = aws_instance.nomadic_three.public_ip
-}
-
-output "tags" {
-  value = var.tags
 }

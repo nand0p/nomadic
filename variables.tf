@@ -6,6 +6,11 @@ variable "tags" {
   type = map
 }
 
+variable "allow_public_ip" {
+  type = bool
+  description = "Associate public ip with instance"
+}
+
 variable "aws_profile" {
   type = string
 }
@@ -28,6 +33,11 @@ variable "trusted_cidrs" {
 
 variable "key_name" {
   type = string
+}
+
+variable "dns_hosted_zone_id" {
+  type = string
+  description = "Route53 Zone ID as assigned by AWS for managing DNS records."
 }
 
 variable "nomadic_instance_size" {
@@ -67,6 +77,18 @@ variable "nomadic_instance_profile_name" {
 }
 
 variable "nomadic_vpc_cidr" {
+  type = string
+}
+
+variable "nomadic_cluster_ip_one" {
+  type = string
+}
+
+variable "nomadic_cluster_ip_two" {
+  type = string
+}
+
+variable "nomadic_cluster_ip_three" {
   type = string
 }
 

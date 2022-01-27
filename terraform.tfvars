@@ -12,11 +12,17 @@ root_volume_type = "standard"
 root_volume_size = "20"
 nomadic_instance_size = "t3a.nano"
 key_name = "nomadic"
+dns_hosted_zone_id = "Z03644112ITLCJM3OXQB0"
+allow_public_ip = true
 
 nomadic_vpc_cidr = "192.168.212.0/22"
 nomadic_subnet_cidr_one = "192.168.212.0/24"
 nomadic_subnet_cidr_two = "192.168.213.0/24"
 nomadic_subnet_cidr_three = "192.168.214.0/24"
+
+nomadic_cluster_ip_one = "192.168.212.99"
+nomadic_cluster_ip_two = "192.168.213.99"
+nomadic_cluster_ip_three = "192.168.214.99"
 
 nomadic_availability_zone_one = "us-east-1a"
 nomadic_availability_zone_two = "us-east-1f"

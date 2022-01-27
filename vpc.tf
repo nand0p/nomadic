@@ -34,27 +34,6 @@ resource "aws_internet_gateway" "nomadic" {
   tags   = var.tags
 }
 
-resource "aws_eip" "nomadic_one" {
-  vpc        = true
-  instance   = aws_instance.nomadic_one.id
-  depends_on = [aws_internet_gateway.nomadic]
-  tags       = var.tags
-}
-
-resource "aws_eip" "nomadic_two" {
-  vpc        = true
-  instance   = aws_instance.nomadic_two.id
-  depends_on = [aws_internet_gateway.nomadic]
-  tags       = var.tags
-}
-
-resource "aws_eip" "nomadic_three" {
-  vpc        = true
-  instance   = aws_instance.nomadic_three.id
-  depends_on = [aws_internet_gateway.nomadic]
-  tags       = var.tags
-}
-
 resource "aws_route_table" "nomadic" {
   count  = var.nomadic_vpc_id == "" ? 1 : 0
   vpc_id = aws_vpc.nomadic[0].id
