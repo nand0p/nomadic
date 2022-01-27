@@ -4,7 +4,7 @@ data_dir = "/opt/consul"
 
 client_addr = "0.0.0.0"
 
-ui_config.enabled = true
+ui = true
 
 server = true
 
