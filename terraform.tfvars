@@ -7,13 +7,16 @@ environment = "production"
 aws_profile = "nomadic"
 aws_region = "us-east-1"
 timestamp = "January2022"
-trusted_cidrs = ["69.113.180.153/32"]
 root_volume_type = "standard"
 root_volume_size = "20"
 nomadic_instance_size = "t3a.nano"
 key_name = "nomadic"
 dns_hosted_zone_id = "Z03644112ITLCJM3OXQB0"
 allow_public_ip = true
+trusted_cidrs = [
+  "69.113.180.153/32",
+  "65.78.22.167/32"
+]
 
 nomadic_vpc_cidr = "192.168.212.0/22"
 nomadic_subnet_cidr_one = "192.168.212.0/24"

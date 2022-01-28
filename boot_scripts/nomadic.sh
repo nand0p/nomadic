@@ -18,7 +18,10 @@ sed -i "s|CONSUL_ENCRYPTION_KEY|$${CONSUL_KEY}|g" /etc/consul.d/consul.hcl
 sed -i "s|NOMADIC_ONE_IP|${PRIVATE_IP_ONE}|g" /etc/consul.d/consul.hcl
 sed -i "s|NOMADIC_TWO_IP|${PRIVATE_IP_TWO}|g" /etc/consul.d/consul.hcl
 sed -i "s|NOMADIC_THREE_IP|${PRIVATE_IP_THREE}|g" /etc/consul.d/consul.hcl
+wget -O /etc/consul.d/consul.env https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/boot_scripts/consul.env
 cat /etc/consul.d/consul.hcl
+systemctl enable consul
+systemctl start consul
 
 
 echo configure nomad
@@ -28,15 +31,13 @@ sed -i "s|NOMADIC_ONE_IP|${PRIVATE_IP_ONE}|g" /etc/nomad.d/nomad.hcl
 sed -i "s|NOMADIC_TWO_IP|${PRIVATE_IP_TWO}|g" /etc/nomad.d/nomad.hcl
 sed -i "s|NOMADIC_THREE_IP|${PRIVATE_IP_THREE}|g" /etc/nomad.d/nomad.hcl
 cat /etc/nomad.d/nomad.hcl
-systemctl enable consul
-systemctl stop consul
-systemctl start consul
+systemctl enable nomad
+systemctl start nomad
 
 
 echo configure vault
 echo unseal
 systemctl enable vault
-systemctl stop vault
 systemctl start vault
 
 
@@ -45,17 +46,17 @@ which consul
 which nomad
 which vault
 sleep 30
-/usr/bin/consul --version
-/usr/bin/consul status
+/usr/bin/consul version
+/usr/bin/consul members
 systemctl status consul
 journalctl -u consul
 
-/usr/bin/nomad --version
+/usr/bin/nomad version
 /usr/bin/nomad status
 systemctl status nomad
 journalctl -u nomad
 
-/usr/bin/vault --version
+/usr/bin/vault version
 /usr/bin/vault status
 systemctl status vault
 journalctl -u vault

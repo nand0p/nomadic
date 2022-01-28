@@ -1,4 +1,4 @@
-datacenter = "dc-001"
+datacenter = "dc-aws-001"
 
 data_dir = "/opt/consul"
 

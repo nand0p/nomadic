@@ -1,19 +1,23 @@
+data_dir = "/opt/nomad/data"
+bind_addr = "0.0.0.0"
+
+
 server {
-  enabled = true
+  enabled          = true
   bootstrap_expect = 3
+  #license_path    = "/etc/nomad.d/nomad.hcl"
+
   server_join {
     retry_join = [
-      "{{ NOMADIC_ONE_IP }}:4648",
-      "{{ NOMADIC_TWO_IP }}:4648",
-      "{{ NOMADIC_THREE_IP }}:4648"
+      "NOMADIC_ONE_IP:4648",
+      "NOMADIC_TWO_IP:4648",
+      "NOMADIC_THREE_IP:4648"
     ]
   }
 }
 
+
 client {
   enabled = true
-}
-
-consul {
-  address = "localhost:8500"
+  servers = ["127.0.0.1"]
 }
