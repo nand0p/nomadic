@@ -1,15 +1,9 @@
-FROM centos:centos7
-MAINTAINER Fernando J. Pando <nando@hex7.com>
+FROM nginx:alpine
 
-RUN yum -y install epel-release
-RUN yum -y install nginx
+MAINTAINER hexseven <hexseven@nomadic.red>
 
-RUN ln -sfv /dev/stdout /var/log/nginx/access.log
-RUN ln -sfv /dev/stdout /var/log/nginx/error.log
+RUN apk add nginx
 
 COPY index.html /usr/share/nginx/html/index.html
-COPY stelligent.jpg /usr/share/nginx/html/stelligent.jpg
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+COPY nomadic.png /usr/share/nginx/html/nomadic.png
+COPY favicon.ico /usr/share/nginx/html/favicon.ico

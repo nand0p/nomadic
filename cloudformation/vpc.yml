@@ -1,0 +1,448 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Nomad Cluster VPC
+
+
+Parameters:
+  VpcCidr:
+    Type: String
+  SubnetCidr:
+    Type: String
+  TrustedCidr:
+    Type: String
+
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  InternetGatewayAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+      AvailabilityZone: us-east-1a
+
+
+  SubnetAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: InternetGatewayAttach
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+
+  EIPA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPC:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+
+  EIPAssocA:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceA
+      AllocationId: !GetAtt [EIPA, AllocationId]
+
+
+  EIPAssocB:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceB
+      AllocationId: !GetAtt [EIPB, AllocationId]
+
+
+  EIPAssocC:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      NetworkInterfaceId: !Ref NomadInterfaceC
+      AllocationId: !GetAtt [EIPC, AllocationId]
+
+
+  NomadMasterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Nomad Master Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 4646
+        ToPort: 4646
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 8500
+        ToPort: 8500
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 4646
+        ToPort: 4647
+        SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+      - IpProtocol: udp
+        FromPort: 8300
+        ToPort: 8302
+        SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 8300
+        ToPort: 8302
+        SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
+  NomadMasterIngressTCP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: nomad-tcp-master-master
+      FromPort: 4647
+      ToPort: 4648
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadMasterIngressUDP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: nomad-udp-master-master
+      FromPort: 4648
+      ToPort: 4648
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: udp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadMasterIngressConsulTCP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-tcp-master-master
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadMasterIngressConsulTCP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-udp-master-master
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadMasterSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadWorkerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Nomad Worker Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 9998
+        ToPort: 9999
+        CidrIp: !Ref TrustedCidr
+      - IpProtocol: tcp
+        FromPort: 9999
+        ToPort: 9999
+        SourceSecurityGroupId: !Ref NomadLoadBalancerSecurityGroup
+
+
+  NomadWorkerIngressConsulTCPmaster:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-tcp-worker-master
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadWorkerIngressConsulUDPmaster:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-udp-worker-master
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: udp
+      SourceSecurityGroupId: !Ref NomadMasterSecurityGroup
+
+
+  NomadWorkerIngressConsulTCPworker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-tcp-worker-worker
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
+  NomadWorkerIngressConsulUDPworker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: consul-udp-worker-worker
+      FromPort: 8300
+      ToPort: 8302
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: udp
+      SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
+  NomadWorkerIngressDockerTCPworker:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: docker-tcp-worker-worker
+      FromPort: 20000
+      ToPort: 32000
+      GroupId: !Ref NomadWorkerSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NomadWorkerSecurityGroup
+
+
+  NomadLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: nomad-load-balancer
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: !Ref TrustedCidr
+
+
+  NomadInterfaceA:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceA
+      GroupSet: [!Ref NomadMasterSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadInterfaceB:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceB
+      GroupSet: [!Ref NomadMasterSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadInterfaceC:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: NomadInterfaceC
+      GroupSet: [!Ref NomadMasterSecurityGroup]
+      SourceDestCheck: true
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+
+  NomadMasterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+
+  NomadMasterInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: NomadMasterRole
+    Properties:
+      Path: /
+      Roles:
+        -
+          Ref: NomadMasterRole
+
+
+  NomadWorkerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Policies:
+        -
+          PolicyName: nomad-worker
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement: 
+              - 
+                Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeInstanceHealth
+                Resource: '*'
+
+
+  NomadWorkerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: NomadWorkerRole
+    Properties:
+      Path: /
+      Roles:
+        -
+          Ref: NomadWorkerRole
+
+Outputs:
+  NomadPublicSubnet:
+    Value: !Ref PublicSubnet
+    Description: Nomad Public Subnet
+    Export:
+      Name: NomadPublicSubnet
+
+  NomadWorkerSecurityGroup:
+    Value: !Ref NomadWorkerSecurityGroup
+    Description: Nomad Worker Security Group
+    Export:
+      Name: NomadWorkerSecurityGroup
+  NomadLoadBalancerSecurityGroup:
+    Value: !Ref NomadLoadBalancerSecurityGroup
+    Description: Nomad LoadBalancer Security Group
+    Export: 
+      Name: NomadLoadBalancerSecurityGroup
+
+  NomadInterfaceA:
+    Value: !Ref NomadInterfaceA
+    Description: Nomad-A Interface ID
+    Export:
+      Name: NomadInterfaceA
+  NomadPublicIPAddressA:
+    Value: !Ref EIPA
+    Description: Nomad-A Public IP
+  NomadPrivateIPAddressA:
+    Value: !GetAtt [NomadInterfaceA, PrimaryPrivateIpAddress]
+    Description: Nomad-A Private IP
+    Export:
+      Name: ConsulAPrivateIp
+
+  NomadInterfaceB:
+    Value: !Ref NomadInterfaceB
+    Description: Nomad-B Interface ID
+    Export:
+      Name: NomadInterfaceB
+  NomadPublicIPAddressB:
+    Value: !Ref EIPB
+    Description: Nomad-B Public IP
+  NomadPrivateIPAddressB:
+    Value: !GetAtt [NomadInterfaceB, PrimaryPrivateIpAddress]
+    Description: Nomad-B Private IP
+    Export:
+      Name: ConsulBPrivateIp
+
+  NomadInterfaceC:
+    Value: !Ref NomadInterfaceC
+    Description: Nomad-C Interface ID
+    Export:
+      Name: NomadInterfaceC
+  NomadPublicIPAddressC:
+    Value: !Ref EIPC
+    Description: Nomad-C Public IP
+  NomadPrivateIPAddressC:
+    Value: !GetAtt [NomadInterfaceC, PrimaryPrivateIpAddress]
+    Description: Nomad-C Private IP
+    Export:
+      Name: ConsulCPrivateIp
+
+  NomadMasterInstanceProfile:
+    Value: !Ref NomadMasterInstanceProfile
+    Description: NomadMasterInstanceProfile
+    Export:
+      Name: NomadMasterInstanceProfile
+
+  NomadWorkerInstanceProfile:
+    Value: !Ref NomadWorkerInstanceProfile
+    Description: NomadWorkerInstanceProfile
+    Export:
+      Name: NomadWorkerInstanceProfile
