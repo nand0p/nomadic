@@ -1,9 +1,9 @@
 #!/bin/bash -ex
 
 
-echo install deps
+echo install dependencies
 yum -y update
-yum -y install htop yum-utils
+yum -y install nmap nc htop yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
 
 
