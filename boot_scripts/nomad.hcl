@@ -1,5 +1,6 @@
-data_dir = "/opt/nomad/data"
-bind_addr = "0.0.0.0"
+data_dir   = "/opt/nomad/data"
+bind_addr  = "0.0.0.0"
+datacenter = "dc-aws-001"
 
 
 server {
