@@ -23,6 +23,7 @@ echo configure cluster nodes
 aws ssm get-parameter --with-decryption --region us-east-1 --name nomadic_ssh_key --output text --query Parameter.Value | tee /home/ec2-user/.ssh/id_rsa
 chown -c ec2-user. /home/ec2-user/.ssh/id_rsa
 chmod -c 0400 /home/ec2-user/.ssh/id_rsa
+echo "${PRIVATE_IP_ONE} nomadic" | tee -a /etc/hosts
 echo "${PRIVATE_IP_ONE} nomadic1" | tee -a /etc/hosts
 echo "${PRIVATE_IP_TWO} nomadic2" | tee -a /etc/hosts
 echo "${PRIVATE_IP_THREE} nomadic3" | tee -a /etc/hosts
@@ -67,15 +68,19 @@ mv -v /etc/vault.d/vault.hcl /etc/vault.d/vault.hcl.orig
 wget -O /etc/vault.d/vault.hcl https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/bootstrap/vault.hcl
 wget -O /etc/vault.d/vault.env https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/bootstrap/vault.env
 LOCAL_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+sed -i "s|VAULT_KMS_ID|${VAULT_KMS_ID}|g" /etc/vault.d/vault.hcl
+cat /etc/vault.d/vault.hcl
+systemctl enable vault
+systemctl start vault
+echo pause for vault
+sleep 30
 if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   echo instance is leader
-  sed -i "s|VAULT_KMS_ID|${VAULT_KMS_ID}|g" /etc/vault.d/vault.hcl
-  cat /etc/vault.d/vault.hcl
-  echo vault initialize
-  systemctl enable vault
-  systemctl start vault
-  /usr/bin/vault operator init -address="http://127.0.0.1:8200" | tee /root/vault.secret
-  /usr/bin/vault status -address="http://127.0.0.1:8200"
+  /usr/bin/vault status -address="http://127.0.0.1:8200" | grep Init | tee /root/vault.init
+  if grep false /root/vault.init; then
+    echo vault initialize
+    /usr/bin/vault operator init -address="http://127.0.0.1:8200" | tee /root/vault.secret
+  fi
 fi
 
 
@@ -83,7 +88,8 @@ echo pause and verify_cluster
 which consul
 which nomad
 which vault
-sleep 60
+echo pause for cluster
+sleep 30
 /usr/bin/consul version
 /usr/bin/consul info
 /usr/bin/consul members

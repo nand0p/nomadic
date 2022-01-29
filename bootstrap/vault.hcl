@@ -1,5 +1,6 @@
 ui = true
-api_addr = "http://127.0.0.1:8200"
+api_addr = "http://localhost:8200"
+cluster_addr = "http://nomadic:8200"
 
 storage "consul" {
   address = "127.0.0.1:8500"
