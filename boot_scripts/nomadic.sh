@@ -36,7 +36,18 @@ systemctl start nomad
 
 
 echo configure vault
-echo unseal
+mv -v /etc/vault.d/vault.hcl /etc/vault.d/vault.hcl.orig
+wget -O /etc/vault.d/vault.hcl https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/boot_scripts/vault.hcl
+LOCAL_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
+  echo instance is leader
+  sed -i "s|VAULT_KMS_ID|${VAULT_KMS_ID}|g" /etc/vault/vault.hcl
+  cat /etc/vault/vault.hcl
+  echo unseal
+  vault operator init
+  vault operator unseal
+fi
+
 systemctl enable vault
 systemctl start vault
 

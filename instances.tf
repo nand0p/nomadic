@@ -11,14 +11,20 @@ data "aws_ami" "nomadic" {
 data "template_file" "nomadic_boot" {
   template = file("${abspath(path.root)}/boot_scripts/nomadic.sh")
   vars = {
-    BRANCH = var.nomadic_branch
-    CONSUL_VERSION = var.consul_version
-    NOMAD_VERSION = var.nomad_version
-    VAULT_VERSION = var.vault_version
-    PRIVATE_IP_ONE = var.nomadic_cluster_ip_one
-    PRIVATE_IP_TWO = var.nomadic_cluster_ip_two
+    BRANCH           = var.nomadic_branch
+    CONSUL_VERSION   = var.consul_version
+    NOMAD_VERSION    = var.nomad_version
+    VAULT_VERSION    = var.vault_version
+    PRIVATE_IP_ONE   = var.nomadic_cluster_ip_one
+    PRIVATE_IP_TWO   = var.nomadic_cluster_ip_two
     PRIVATE_IP_THREE = var.nomadic_cluster_ip_three
+    VAULT_KMS_ID     = aws_kms_key.nomadic.key_id
   }
+}
+
+resource "aws_kms_key" "nomadic" {
+  description             = "nomadic"
+  deletion_window_in_days = 7
 }
 
 resource "aws_instance" "nomadic_one" {
