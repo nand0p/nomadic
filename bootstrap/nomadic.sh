@@ -72,8 +72,8 @@ if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   sed -i "s|VAULT_KMS_ID|${VAULT_KMS_ID}|g" /etc/vault.d/vault.hcl
   cat /etc/vault.d/vault.hcl
   echo unseal
-  vault operator init
-  vault operator unseal
+  vault operator init -address="http://127.0.0.1:8200"
+  vault operator unseal -address="http://127.0.0.1:8200"
 fi
 systemctl enable vault
 systemctl start vault
@@ -97,6 +97,6 @@ systemctl status nomad
 journalctl -u nomad
 
 /usr/bin/vault version
-/usr/bin/vault status
+/usr/bin/vault status -address="http://127.0.0.1:8200"
 systemctl status vault
 journalctl -u vault
