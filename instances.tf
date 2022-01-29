@@ -9,7 +9,7 @@ data "aws_ami" "nomadic" {
 }
 
 data "template_file" "nomadic_boot" {
-  template = file("${abspath(path.root)}/boot_scripts/nomadic.sh")
+  template = file("${abspath(path.root)}/bootstrap/nomadic.sh")
   vars = {
     BRANCH           = var.nomadic_branch
     CONSUL_VERSION   = var.consul_version
