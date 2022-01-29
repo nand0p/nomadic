@@ -1,6 +1,10 @@
 #!/bin/bash -ex
 
 
+echo get cluster node ip address
+LOCAL_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+
+
 echo install dependencies
 yum -y update
 yum -y install git nmap nc htop yum-utils
@@ -13,6 +17,24 @@ git clone https://github.com/nand0p/nomadic.git /root/nomadic
 
 echo install service packages
 yum -y install docker consul nomad vault
+
+
+echo configure cluster nodes
+aws ssm get-parameter --with-decryption --region us-east-1 --name nomadic_ssh_key --output text --query Parameter.Value | tee /home/ec2-user/.ssh/id_rsa
+chown -c ec2-user. /home/ec2-user/.ssh/id_rsa
+chmod -c 0400 /home/ec2-user/.ssh/id_rsa
+echo "${PRIVATE_IP_ONE} nomadic1" | tee -a /etc/hosts
+echo "${PRIVATE_IP_TWO} nomadic2" | tee -a /etc/hosts
+echo "${PRIVATE_IP_THREE} nomadic3" | tee -a /etc/hosts
+cat /etc/hosts
+if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
+   hostnamectl set-hostname nomadic1
+elif [ "${PRIVATE_IP_TWO}" == "$${LOCAL_IP}" ]; then
+   hostnamectl set-hostname nomadic2
+elif [ "${PRIVATE_IP_THREE}" == "$${LOCAL_IP}" ]; then
+   hostnamectl set-hostname nomadic3
+fi
+hostname
 
 
 echo configure consul
