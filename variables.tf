@@ -35,6 +35,22 @@ variable "key_name" {
   type = string
 }
 
+variable "nomadic_branch" {
+  type = string
+}
+
+variable "nomad_version" {
+  type = string
+}
+
+variable "consul_version" {
+  type = string
+}
+
+variable "vault_version" {
+  type = string
+}
+
 variable "dns_hosted_zone_id" {
   type = string
   description = "Route53 Zone ID as assigned by AWS for managing DNS records."

@@ -18,6 +18,11 @@ trusted_cidrs = [
   "65.78.22.167/32"
 ]
 
+nomadic_branch = "master"
+consul_version = "1.11.2"
+nomad_version = "1.2.4"
+vault_version = "1.9.2"
+
 nomadic_vpc_cidr = "192.168.212.0/22"
 nomadic_subnet_cidr_one = "192.168.212.0/24"
 nomadic_subnet_cidr_two = "192.168.213.0/24"
