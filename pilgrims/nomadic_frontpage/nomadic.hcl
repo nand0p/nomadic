@@ -1,5 +1,5 @@
 job "nomadic" {
-  datacenters = ["dc1"]
+  datacenters = ["dc-aws-001"]
   type = "service"
   priority = 50
 
@@ -31,9 +31,9 @@ job "nomadic" {
         port_map {
           http = 80
         }
-        volumes = [
-          "/efs/nomadic:/mnt"
-        ]
+        #volumes = [
+        #  "/efs/nomadic:/mnt"
+        #]
       }
 
       service {
@@ -51,7 +51,7 @@ job "nomadic" {
 
       resources {
         cpu = 500
-        memory = 128
+        memory = 16
         network {
           mbits = 1
           port "http" {}

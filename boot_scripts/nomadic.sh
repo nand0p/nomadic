@@ -3,7 +3,7 @@
 
 echo install dependencies
 yum -y update
-yum -y install nmap nc htop yum-utils
+yum -y install git nmap nc htop yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
 
 
@@ -60,3 +60,7 @@ journalctl -u nomad
 /usr/bin/vault status
 systemctl status vault
 journalctl -u vault
+
+
+echo clone nomadic repo
+git clone https://github.com/nand0p/nomadic.git
