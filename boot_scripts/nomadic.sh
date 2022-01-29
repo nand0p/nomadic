@@ -45,7 +45,7 @@ echo pause and verify_cluster
 which consul
 which nomad
 which vault
-sleep 30
+sleep 60
 /usr/bin/consul version
 /usr/bin/consul members
 systemctl status consul
@@ -63,4 +63,4 @@ journalctl -u vault
 
 
 echo clone nomadic repo
-git clone https://github.com/nand0p/nomadic.git
+git clone https://github.com/nand0p/nomadic.git /root/nomadic
