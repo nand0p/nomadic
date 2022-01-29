@@ -71,12 +71,12 @@ if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   echo instance is leader
   sed -i "s|VAULT_KMS_ID|${VAULT_KMS_ID}|g" /etc/vault.d/vault.hcl
   cat /etc/vault.d/vault.hcl
-  echo unseal
-  vault operator init -address="http://127.0.0.1:8200"
-  vault operator unseal -address="http://127.0.0.1:8200"
+  echo vault initialize
+  systemctl enable vault
+  systemctl start vault
+  /usr/bin/vault operator init -address="http://127.0.0.1:8200" | tee /root/vault.secret
+  /usr/bin/vault status -address="http://127.0.0.1:8200"
 fi
-systemctl enable vault
-systemctl start vault
 
 
 echo pause and verify_cluster

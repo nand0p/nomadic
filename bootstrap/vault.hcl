@@ -1,3 +1,6 @@
+ui = true
+api_addr = "http://127.0.0.1:8200"
+
 storage "consul" {
   address = "127.0.0.1:8500"
   path    = "vault/"
@@ -13,7 +16,6 @@ listener "tcp" {
   tls_disable = 1
 }
 
-ui = true
 #mlock = true
 #disable_mlock = true
 #license_path = "/etc/vault.d/vault.hclic"
