@@ -64,6 +64,8 @@ systemctl start nomad
 
 
 echo configure vault
+export VAULT_API_ADDR=http://127.0.0.1:8200
+echo "export VAULT_API_ADDR=http://127.0.0.1:8200" | tee /etc/profile.d/vault_api_addr.sh
 mv -v /etc/vault.d/vault.hcl /etc/vault.d/vault.hcl.orig
 wget -O /etc/vault.d/vault.hcl https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/bootstrap/vault.hcl
 wget -O /etc/vault.d/vault.env https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/bootstrap/vault.env
@@ -76,10 +78,10 @@ echo pause for vault
 sleep 30
 if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   echo instance is leader
-  /usr/bin/vault status -address="http://127.0.0.1:8200" | grep Init | tee /root/vault.init
+  /usr/bin/vault status | grep Init | tee /root/vault.init
   if grep false /root/vault.init; then
     echo vault initialize
-    /usr/bin/vault operator init -address="http://127.0.0.1:8200" | tee /root/vault.secret
+    /usr/bin/vault operator init | tee /root/vault.secret
   fi
 fi
 
@@ -103,6 +105,6 @@ systemctl status nomad
 journalctl -u nomad
 
 /usr/bin/vault version
-/usr/bin/vault status -address="http://127.0.0.1:8200"
+/usr/bin/vault status
 systemctl status vault
 journalctl -u vault
