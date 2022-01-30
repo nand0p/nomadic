@@ -70,4 +70,4 @@ Additionally, care must be taken to ensure variables in `terraform.tfvars` are s
 Nomadic support is available `nomadic at hex7 dot com`.
 
 ### Warship Not Whale.
-![alt text](https://github.com/nand0p/nomadic/blob/terraform-001/app/nomadic.png?raw=true)
+![alt text](https://github.com/nand0p/nomadic/blob/master/images/nomadic.png?raw=true)
