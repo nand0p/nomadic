@@ -89,7 +89,7 @@ which consul
 which nomad
 which vault
 echo pause for cluster
-sleep 30
+sleep 60
 /usr/bin/consul version
 /usr/bin/consul info
 /usr/bin/consul members
