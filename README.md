@@ -56,6 +56,15 @@ To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template 
 As each pilgrim is just a collection of Terraform resources, advanced users can use Terraform Remote State to manage Nomadic Pilgrims, as opposed to maintaining an application deployment directory.
 
 
+### Pre-deployment Configuration
+
+The following AWS SSM Parameter Store keys must be set before executing Nomadic deployment:
+1. `consul_encryption_key` This key is read by all consul nodes and is needed for Consul cluster quorum.
+2. `nomadic_ssh_key` This key is used for intercluster communications, and also for Pilgrim pipelines to execute application changes.
+
+Additionally, care must be taken to ensure variables in `terraform.tfvars` are set properly, according to user environment. By default, each Nomadic cluster node will be deployed in a separate subnet and availability zone.  Users can deploy into existing VPCs/Subnets by specifying values here.
+
+
 ### Nomadic Support
 
 Nomadic support is available `nomadic at hex7 dot com`.
