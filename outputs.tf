@@ -35,7 +35,7 @@ output "nomadic_three_public_ip" {
 }
 
 output "tags" {
-  value = var.tags
+  value = local.tags
 }
 
 output "aws_account_id" {

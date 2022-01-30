@@ -11,7 +11,7 @@ resource "aws_security_group" "nomadic_cluster" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = var.tags
+  tags = local.tags
 }
 
 resource "aws_security_group_rule" "allow_intra_cluster" {

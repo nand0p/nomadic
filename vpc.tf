@@ -1,7 +1,7 @@
 resource "aws_vpc" "nomadic" {
   count      = var.nomadic_vpc_id == "" ? 1 : 0
   cidr_block = var.nomadic_vpc_cidr
-  tags       = var.tags
+  tags       = local.tags
 }
 
 resource "aws_subnet" "nomadic_one" {
@@ -9,7 +9,7 @@ resource "aws_subnet" "nomadic_one" {
   vpc_id            = aws_vpc.nomadic[0].id
   cidr_block        = var.nomadic_subnet_cidr_one
   availability_zone = var.nomadic_availability_zone_one
-  tags              = var.tags
+  tags              = local.tags
 }
 
 resource "aws_subnet" "nomadic_two" {
@@ -17,7 +17,7 @@ resource "aws_subnet" "nomadic_two" {
   vpc_id            = aws_vpc.nomadic[0].id
   cidr_block        = var.nomadic_subnet_cidr_two
   availability_zone = var.nomadic_availability_zone_two
-  tags              = var.tags
+  tags              = local.tags
 }
 
 resource "aws_subnet" "nomadic_three" {
@@ -25,19 +25,19 @@ resource "aws_subnet" "nomadic_three" {
   vpc_id            = aws_vpc.nomadic[0].id
   cidr_block        = var.nomadic_subnet_cidr_three
   availability_zone = var.nomadic_availability_zone_three
-  tags              = var.tags
+  tags              = local.tags
 }
 
 resource "aws_internet_gateway" "nomadic" {
   count  = var.nomadic_vpc_id == "" ? 1 : 0
   vpc_id = aws_vpc.nomadic[0].id
-  tags   = var.tags
+  tags   = local.tags
 }
 
 resource "aws_route_table" "nomadic" {
   count  = var.nomadic_vpc_id == "" ? 1 : 0
   vpc_id = aws_vpc.nomadic[0].id
-  tags   = var.tags
+  tags   = local.tags
 
   route {
     cidr_block = "0.0.0.0/0"

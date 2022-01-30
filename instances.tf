@@ -38,12 +38,12 @@ resource "aws_instance" "nomadic_one" {
   private_ip                  = var.nomadic_cluster_ip_one
   user_data                   = data.template_file.nomadic_boot.rendered
   associate_public_ip_address = var.allow_public_ip
-  tags                        = var.tags
+  tags                        = local.tags
 
   root_block_device {
     volume_size = var.root_volume_size
     volume_type = var.root_volume_type
-    tags        = var.tags
+    tags        = local.tags
   }
 }
 
@@ -58,12 +58,12 @@ resource "aws_instance" "nomadic_two" {
   private_ip                  = var.nomadic_cluster_ip_two
   user_data                   = data.template_file.nomadic_boot.rendered
   associate_public_ip_address = var.allow_public_ip
-  tags                        = var.tags
+  tags                        = local.tags
 
   root_block_device {
     volume_size = var.root_volume_size
     volume_type = var.root_volume_type
-    tags        = var.tags
+    tags        = local.tags
   }
 }
 
@@ -78,11 +78,11 @@ resource "aws_instance" "nomadic_three" {
   private_ip                  = var.nomadic_cluster_ip_three
   user_data                   = data.template_file.nomadic_boot.rendered
   associate_public_ip_address = var.allow_public_ip
-  tags                        = var.tags
+  tags                        = local.tags
 
   root_block_device {
     volume_size = var.root_volume_size
     volume_type = var.root_volume_type
-    tags        = var.tags
+    tags        = local.tags
   }
 }
