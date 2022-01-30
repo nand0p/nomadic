@@ -90,8 +90,8 @@ aws ssm get-parameter \
   --output text | tee  /opt/vault/tls/tls.key
 systemctl enable vault
 systemctl start vault
-echo pause for vault
-sleep 30
+echo pause for cluster
+sleep 60
 if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   echo instance is leader
   /usr/bin/vault status -address="https://vault.nomadic.red:8200"| grep Init | tee /root/vault.init
@@ -106,7 +106,7 @@ echo pause and verify_cluster
 which consul
 which nomad
 which vault
-sleep 60
+sleep 30
 /usr/bin/consul version
 /usr/bin/consul info
 /usr/bin/consul members

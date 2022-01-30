@@ -28,6 +28,13 @@ resource "aws_subnet" "nomadic_three" {
   tags              = local.tags
 }
 
+resource "aws_ssm_parameter" "nomadic_subnets" {
+  name      = "nomadic_subnets"
+  type      = "String"
+  overwrite = true
+  value     = "${aws_subnet.nomadic_one[0].id},${aws_subnet.nomadic_two[0].id},${aws_subnet.nomadic_three[0].id}"
+}
+
 resource "aws_internet_gateway" "nomadic" {
   count  = var.nomadic_vpc_id == "" ? 1 : 0
   vpc_id = aws_vpc.nomadic[0].id

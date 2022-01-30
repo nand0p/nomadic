@@ -86,3 +86,10 @@ resource "aws_instance" "nomadic_three" {
     tags        = local.tags
   }
 }
+
+resource "aws_ssm_parameter" "nomadic_instances" {
+  name      = "nomadic_instances"
+  type      = "String"
+  overwrite = true
+  value     = "${aws_instance.nomadic_one.id},${aws_instance.nomadic_two.id},${aws_instance.nomadic_three.id}"
+}
