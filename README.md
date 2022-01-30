@@ -17,21 +17,21 @@ Nomadic is a Terraform framework to deploy Hashicorp minimal and secure containe
 Nomadic Terraform code deploys a (3) node EC2 instance cluster to implement the minimal deployment footprint possible to support running containers on Hashicorp code. The following services run on each Nomadic cluster node:
 
 1. Vault server (one instance in primary, two in standby).
-  1. Vault API tcp/8200
+   1. Vault API tcp/8200
 
 2. Consul server.
-  1. DNS: The DNS server (TCP and UDP) 8600
-  2. HTTP: The HTTP API (TCP Only) 8500
-  3. HTTPS: The HTTPs API (disabled) 8501
-  4. gRPC: The gRPC API	(disabled) 8502
-  5. LAN Serf: The Serf LAN port (TCP and UDP) 8301
-  6. Wan Serf: The Serf WAN port (TCP and UDP) 8302
-  7. server: Server RPC address (TCP Only) 8300
+   1. DNS: The DNS server (TCP and UDP) 8600
+   2. HTTP: The HTTP API (TCP Only) 8500
+   3. HTTPS: The HTTPs API (disabled) 8501
+   4. gRPC: The gRPC API	(disabled) 8502
+   5. LAN Serf: The Serf LAN port (TCP and UDP) 8301
+   6. Wan Serf: The Serf WAN port (TCP and UDP) 8302
+   7. server: Server RPC address (TCP Only) 8300
 
 3. Nomad server.
-  1. HTTP API tcp/4646
-  2. RPC tcp/4647
-  3. Serf WAN tcp/4648
+   1. HTTP API tcp/4646
+   2. RPC tcp/4647
+   3. Serf WAN tcp/4648
 
 Nomadic deploys all of these services on each of the (3) EC2 cluster instances.
 - Nomad and Consul use the Raft protocol and EC2 autodiscovery for cluster convergence.
