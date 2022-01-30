@@ -20,10 +20,14 @@ yum -y install docker consul nomad vault
 
 
 echo configure cluster nodes
-aws ssm get-parameter --with-decryption --region us-east-1 --name nomadic_ssh_key --output text --query Parameter.Value | tee /home/ec2-user/.ssh/id_rsa
+aws ssm get-parameter \
+  --with-decryption \
+  --region us-east-1 \
+  --name nomadic_ssh_key \
+  --output text \
+  --query Parameter.Value | tee /home/ec2-user/.ssh/id_rsa
 chown -c ec2-user. /home/ec2-user/.ssh/id_rsa
 chmod -c 0400 /home/ec2-user/.ssh/id_rsa
-echo "${PRIVATE_IP_ONE} nomadic" | tee -a /etc/hosts
 echo "${PRIVATE_IP_ONE} nomadic1" | tee -a /etc/hosts
 echo "${PRIVATE_IP_TWO} nomadic2" | tee -a /etc/hosts
 echo "${PRIVATE_IP_THREE} nomadic3" | tee -a /etc/hosts
@@ -64,24 +68,36 @@ systemctl start nomad
 
 
 echo configure vault
-export VAULT_API_ADDR=http://127.0.0.1:8200
-echo "export VAULT_API_ADDR=http://127.0.0.1:8200" | tee /etc/profile.d/vault_api_addr.sh
+echo "export VAULT_API_ADDR=https://vault.nomadic.red:8200" | tee /etc/profile.d/vault_api_addr.sh
+echo "127.0.0.1 vault.nomadic.red" | tee -a /etc/hosts
 mv -v /etc/vault.d/vault.hcl /etc/vault.d/vault.hcl.orig
 wget -O /etc/vault.d/vault.hcl https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/bootstrap/vault.hcl
 wget -O /etc/vault.d/vault.env https://raw.githubusercontent.com/nand0p/nomadic/${BRANCH}/bootstrap/vault.env
 LOCAL_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
 sed -i "s|VAULT_KMS_ID|${VAULT_KMS_ID}|g" /etc/vault.d/vault.hcl
 cat /etc/vault.d/vault.hcl
+aws ssm get-parameter \
+  --with-decryption \
+  --name vault.nomadic.red_certchain \
+  --region us-east-1 \
+  --query Parameter.Value \
+  --output text | tee  /opt/vault/tls/tls.crt
+aws ssm get-parameter \
+  --with-decryption \
+  --name vault.nomadic.red_key \
+  --region us-east-1 \
+  --query Parameter.Value \
+  --output text | tee  /opt/vault/tls/tls.key
 systemctl enable vault
 systemctl start vault
 echo pause for vault
 sleep 30
 if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   echo instance is leader
-  /usr/bin/vault status | grep Init | tee /root/vault.init
+  /usr/bin/vault status -address="https://vault.nomadic.red:8200"| grep Init | tee /root/vault.init
   if grep false /root/vault.init; then
     echo vault initialize
-    /usr/bin/vault operator init | tee /root/vault.secret
+    /usr/bin/vault operator init -address="https://vault.nomadic.red:8200" | tee /root/vault.secret
   fi
 fi
 
@@ -90,7 +106,6 @@ echo pause and verify_cluster
 which consul
 which nomad
 which vault
-echo pause for cluster
 sleep 60
 /usr/bin/consul version
 /usr/bin/consul info
@@ -105,6 +120,6 @@ systemctl status nomad
 journalctl -u nomad
 
 /usr/bin/vault version
-/usr/bin/vault status
+/usr/bin/vault status -address="https://vault.nomadic.red:8200"
 systemctl status vault
 journalctl -u vault

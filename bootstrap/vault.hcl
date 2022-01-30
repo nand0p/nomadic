@@ -18,6 +18,6 @@ listener "tcp" {
 
 ui            = true
 disable_mlock = false
-api_addr      = "http://127.0.0.1:8200"
-cluster_addr  = "http://127.0.0.1:8201"
+api_addr      = "https://vault.nomadic.red:8200"
+cluster_addr  = "https://vault.nomadic.red:8201"
 #license_path = "/etc/vault.d/vault.hclic"
