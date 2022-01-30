@@ -8,26 +8,42 @@ Nomadic is a Terraform framework to deploy Hashicorp minimal and secure containe
 ### Nomadic Framework
 
 1. Terraform IaC provisioning of cluster resources.
-2. Optional VPC creation (incl. associated VPC resources).
-3. Server bootstrapping via Ansible and cloud-init.
-4. Consul provides container application registration.
-5. Vault provides container application secrets.
-6. Nomad provides container application scheduling.
+2. Optional VPC and supporting resource creation.
+3. Server bootstrapping via Instance UserData.
+4. Consul provides application container registration.
+5. Vault provides application container secrets.
+6. Nomad provides application container scheduling.
 
 Nomadic Terraform code deploys a (3) node EC2 instance cluster to implement the minimal deployment footprint possible to support running containers on Hashicorp code. The following services run on each Nomadic cluster node:
 
 1. Vault server (one instance in primary, two in standby).
-2. Consul server.
-3. Nomad server.
-4. Consul client.
-5. Nomad client.
+  1. Vault API tcp/8200
 
-All these services run on each EC2 instance cluster node. Auto-scaling allows the cluster clients to scale out, as needed by load. By default, Nomadic deploys all these services on (3) EC2 servers only. Nomad and Consul use the Raft protocol and EC2 autodiscovery for cluster convergence.
+2. Consul server.
+  1. DNS: The DNS server (TCP and UDP) 8600
+  2. HTTP: The HTTP API (TCP Only) 8500
+  3. HTTPS: The HTTPs API (disabled) 8501
+  4. gRPC: The gRPC API	(disabled) 8502
+  5. LAN Serf: The Serf LAN port (TCP and UDP) 8301
+  6. Wan Serf: The Serf WAN port (TCP and UDP) 8302
+  7. server: Server RPC address (TCP Only) 8300
+
+3. Nomad server.
+  1. HTTP API tcp/4646
+  2. RPC tcp/4647
+  3. Serf WAN tcp/4648
+
+Nomadic deploys all of these services on each of the (3) EC2 cluster instances.
+- Nomad and Consul use the Raft protocol and EC2 autodiscovery for cluster convergence.
+- Consul reads a common encryption token from SSM Parameter.
+- Vault uses KMS auto-unsealing.
+- Vault uses one-active/two-standy design.
+- Consul and Nomad use three active node design (shared cluster state).
 
 
 ### Nomadic Deployment
 
-Deploying the cluster
+Deploying the cluster:
 
 1. set variables in `terraform.tfvars`
 2. `terraform init`
