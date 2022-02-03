@@ -1,16 +1,9 @@
-data "aws_ssm_parameter" "nomadic_subnets" {
-  name = "nomadic_subnets"
-}
-
-data "aws_ssm_parameter" "nomadic_instances" {
-  name = "nomadic_instances"
-}
-
-resource "aws_elb" "skeleton_application" {
+resource "aws_elb" "nomadic_skeleton" {
   count                       = var.elb_enable ? 1 : 0
   name                        = var.app_name
   instances                   = "${split(",", data.aws_ssm_parameter.nomadic_instances.value)}"
   subnets                     = "${split(",", data.aws_ssm_parameter.nomadic_subnets.value)}"
+  security_groups             = [data.aws_ssm_parameter.nomadic_security_group_id.value]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true
@@ -45,4 +38,8 @@ resource "aws_elb" "skeleton_application" {
   #  bucket_prefix = "bar"
   #  interval      = 60
   #}
+}
+
+output "elb_dns_name" {
+  value = var.elb_enable ? aws_elb.nomadic_skeleton[0].dns_name : "none"
 }

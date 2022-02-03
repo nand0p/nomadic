@@ -1,0 +1,50 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - |
+          set -ex
+          env | sort
+          cd deploy
+          ls -la
+          pwd
+          echo "
+            stack_name ${APP_NAME}
+            environment ${ENVIRONMENT}
+            aws_region ${AWS_REGION}
+            ssh_key ${SSH_KEY}
+            security_group_id ${SECGROUP_ID}
+            nomadic_leader ${NOMADIC_LEADER}
+          "
+
+  build:
+    commands:
+      - |
+          ls -la
+          pwd
+          echo deploy ${ENVIRONMENT} nomadic
+          PUBLIC_IP=$(curl ipecho.net/plain)
+          echo ${SECGROUP_ID} ${PUBLIC_IP}
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${SECGROUP_ID} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${PUBLIC_IP}/32
+
+          echo update nomad job
+          echo ${SSH_KEY} | tee ssh.key
+          ssh -i ssh.key ec2-user@${NOMADIC_LEADER} hostname
+          # scp nomad job file
+          # ssh nomad update job
+
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${SECGROUP_ID} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${PUBLIC_IP}/32
+          rm -fv ssh.key
+
+artifacts:
+  files:
+    - "**/*"

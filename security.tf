@@ -14,6 +14,13 @@ resource "aws_security_group" "nomadic_cluster" {
   tags = local.tags
 }
 
+resource "aws_ssm_parameter" "nomadic_security_group_id" {
+  name      = "nomadic_security_group_id"
+  type      = "SecureString"
+  overwrite = true
+  value     = aws_security_group.nomadic_cluster[0].id
+}
+
 resource "aws_security_group_rule" "allow_intra_cluster" {
   count             = var.nomadic_security_group_id == "" ? 1 : 0
   type              = "ingress"

@@ -4,9 +4,9 @@ aws_region = "us-east-1"
 
 efs_enable = false
 
-elb_enable = true
+elb_enable = false
 
-app_name = "application-skeleton"
+app_name = "nomadic-skeleton"
 
 environment = "production"
 
