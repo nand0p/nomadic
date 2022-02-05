@@ -32,7 +32,7 @@ phases:
             --group-id ${SECGROUP_ID} \
             --protocol tcp \
             --port 22 \
-            --cidr ${PUBLIC_IP}/32
+            --cidr ${PUBLIC_IP}/32 || true
 
           echo "Host *" | tee ~/.ssh/config
           echo "  UserKnownHostsFile /dev/null" | tee -a ~/.ssh/config
