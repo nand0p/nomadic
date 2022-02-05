@@ -108,7 +108,7 @@ echo pause and verify_cluster
 which consul
 which nomad
 which vault
-sleep 30
+sleep 60
 /usr/bin/consul version
 /usr/bin/consul info
 /usr/bin/consul members
