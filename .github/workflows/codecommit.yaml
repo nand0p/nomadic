@@ -1,0 +1,14 @@
+name: push to codecommit
+on:
+  push:
+    branches: [ master ]
+jobs:
+  codecommit:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/nomadic
+          ssh_private_key: ${{ secrets.CODECOMMIT_KEY }}
+          ssh_username: ${{ secrets.CODECOMMIT_ID }}
