@@ -56,14 +56,14 @@ phases:
 
           #ssh -i /home/ec2-user/.ssh/ssh.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ec2-user@${NOMADIC_LEADER} nomad run /home/ec2-user/nomadic/warships/containers/nomadic_frontpage/nomadic.hcl
 
-  finally:
-    - aws ec2 revoke-security-group-ingress \
-        --region us-east-1 \
-        --group-id ${SECGROUP_ID} \
-        --protocol tcp \
-        --port 22 \
-        --cidr ${PUBLIC_IP}/32
-    - rm -fv /home/ec2-user/.ssh/ssh.key
+    finally:
+      - aws ec2 revoke-security-group-ingress \
+          --region us-east-1 \
+          --group-id ${SECGROUP_ID} \
+          --protocol tcp \
+          --port 22 \
+          --cidr ${PUBLIC_IP}/32
+      - rm -fv /home/ec2-user/.ssh/ssh.key
 
 artifacts:
   files:
