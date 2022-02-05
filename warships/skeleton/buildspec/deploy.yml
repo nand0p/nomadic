@@ -49,18 +49,21 @@ phases:
             --output text | tee /home/ec2-user/.ssh/ssh.key
           chmod -c 0400 /home/ec2-user/.ssh/ssh.key
 
-          echo update nomad job
-          ssh -v ${NOMADIC_LEADER} hostname
-          ssh ${NOMADIC_LEADER} git clone https://github.com/nand0p/nomadic.git /home/ec2-user/nomadic
-          ssh ${NOMADIC_LEADER} sudo nomad run /home/ec2-user/nomadic/warships/containers/nomadic_frontpage/nomadic.hcl
+          echo deploy and or update nomad job
+          ssh -v -i /home/ec2-user/.ssh/ssh.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ec2-user@${NOMADIC_LEADER} hostname
+
+          ssh -i /home/ec2-user/.ssh/ssh.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ec2-user@${NOMADIC_LEADER} git clone https://github.com/nand0p/nomadic.git /home/ec2-user/nomadic
+
+          ssh -i /home/ec2-user/.ssh/ssh.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ec2-user@${NOMADIC_LEADER} nomad run /home/ec2-user/nomadic/warships/containers/nomadic_frontpage/nomadic.hcl
 
     finally:
-      - aws ec2 revoke-security-group-ingress \
-          --group-id ${SECGROUP_ID} \
-          --protocol tcp \
-          --port 22 \
-          --cidr ${PUBLIC_IP}/32
-      - rm -fv /home/ec2-user/.ssh/ssh.key
+      - | aws ec2 revoke-security-group-ingress \
+            --region us-east-1 \
+            --group-id ${SECGROUP_ID} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${PUBLIC_IP}/32
+          rm -fv /home/ec2-user/.ssh/ssh.key
 
 artifacts:
   files:
