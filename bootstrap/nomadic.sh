@@ -103,13 +103,17 @@ aws ssm get-parameter \
 systemctl enable vault
 systemctl start vault
 echo pause for cluster
-sleep 60
+sleep 120
 if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
   echo instance is leader
-  /usr/bin/vault status -address="https://vault.nomadic.red:8200"| grep Init | tee /root/vault.init
+  /usr/bin/vault status -address="https://vault.nomadic.red:8200" | grep Init | tee /root/vault.init
+  sleep 5
   if grep false /root/vault.init; then
     echo vault initialize
     /usr/bin/vault operator init -address="https://vault.nomadic.red:8200" | tee /root/vault.secret
+  else
+    echo ERROR cannot initialize vault on leader node.
+    exit 1
   fi
 fi
 
