@@ -38,8 +38,11 @@ phases:
           echo "  UserKnownHostsFile /dev/null" | tee -a ~/.ssh/config
           echo "  StrictHostKeyChecking no" | tee -a ~/.ssh/config
 
-          echo update nomad job
+          echo configure private key
           echo ${SSH_KEY} | tee ssh.key
+          chmod -c 0400 ssh.key
+
+          echo update nomad job
           ssh -i ssh.key ec2-user@${NOMADIC_LEADER} hostname
           # scp nomad job file
           # ssh nomad update job
