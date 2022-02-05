@@ -10,6 +10,8 @@ server = true
 
 bind_addr = "0.0.0.0"
 
+advertise_addr = "127.0.0.1"
+
 bootstrap_expect=3
 
 encrypt = "CONSUL_ENCRYPTION_KEY"
