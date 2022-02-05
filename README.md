@@ -51,11 +51,11 @@ Deploying the cluster:
 4. `terraform apply`
 
 
-### Nomadic Pilgrims and Pilgrim Pipelines
+### Nomadic Warships and Warship Pipelines
 
-Pilgrims are a collection of resources that make up an application, including the pipeline necessary for application updates. CodePipeline runs a unique pipeline for each application. Pilgrim pipelines can run idempotently many times, updating on any application change, only if needed. Pilgrim pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Pilgrim Applications can be effortlessly updated dozens, even hundreds or thousands of times a day. **Each Application is a Unique Pilgrim, on a Unique Journey**.
+Warships are collections of resources that make up an application. This includes the pipeline necessary for application updates / lifecycle management. CodePipeline runs a unique pipeline for each application. Warship pipelines can run idempotently many times, updating on any application change, only if/when needed. Warship pipeline unit and integration testing finds breaking changes before code makes it to production, ensuring high change success confidence. Warship Applications can so be effortlessly updated dozens, even hundreds, or thousands of times a day. **Each Application Pipeline is a Unique Warship**, out on the dangerous open ocean of the internet, each with its own unique security profile and lifecycle.
 
-Each Pilgrim Application contains the following resources:
+Each Warship Application contains the following resources:
 
 1. EFS volume created and configured, including Route53 DNS entry.
 2. ELB frontend created and configured, including Route53 DNS entry.
@@ -65,20 +65,20 @@ Each Pilgrim Application contains the following resources:
    3. Security and Acceptance post-deployment test stages
 
 
-### Pilgrim Deployment
+### Warship Pipeline Deployment
 
-To deploy Nomadic Pilgrim pipelines, use the `pilgrims` directory as a template for your pilgrim application directory. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, execute `terraform init` and `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the pilgrim application by updating the Nomad job.
+To deploy Nomadic Warship pipelines, use the `warships` directory as a template for your warship application directory. There should be a unique directory per application. You will need to configure this template for your specific application. Once configured, execute `terraform init` and `terraform apply` in this directory. This will create the CodePipeline pipeline, and the EFS and ELB resources required for your application.  The pipeline will deploy and/or update the warship application via the Nomad API.
 
-As each pilgrim is just a collection of Terraform resources, advanced users can use Terraform Remote State to manage Nomadic Pilgrims, as opposed to maintaining an application deployment directory.
+As each Warship is just a collection of Terraform resources, advanced users can use Terraform Remote State to manage Nomadic Warships, as opposed to maintaining an application deployment directory.
 
 
 ### Pre-deployment Configuration
 
 The following AWS SSM Parameter Store keys must be set before executing Nomadic deployment:
 1. `consul_encryption_key` This key is read by all consul nodes and is needed for Consul cluster quorum.
-2. `nomadic_ssh_key` This key is used for intercluster communications, and also for Pilgrim pipelines to execute application changes.
+2. `nomadic_ssh_key` This key is used for inter-cluster communications, and also for Warship pipelines to execute application changes.
 
-Additionally, care must be taken to ensure variables in `terraform.tfvars` are set properly, according to user environment. By default, each Nomadic cluster node will be deployed in a separate subnet and availability zone.  Users can deploy into existing VPCs/Subnets by specifying values here.
+Additionally, care must be taken to ensure variables in `terraform.tfvars` are set properly, according to user environment. By default, each Nomadic cluster node will be deployed in a separate subnet and availability zone.  Users can deploy into existing VPCs/Subnets by specifying values.  VPC and subnet resources are created new by default.
 
 
 ### Nomadic Support

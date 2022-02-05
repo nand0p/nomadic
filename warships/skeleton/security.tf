@@ -1,11 +1,14 @@
-resource "aws_iam_role" "nomadic_pipeline" {
-  name_prefix        = var.app_name
-  assume_role_policy = data.aws_iam_policy_document.nomadic_pipeline_assume_role.json
+# One set of security resources shared by all application warship pipelines
+
+
+resource "aws_iam_role" "warship_pipelines" {
+  name_prefix        = "nomadic-warship-pipelines-"
+  assume_role_policy = data.aws_iam_policy_document.warship_pipelines_assume_role.json
   path               = "/"
-  tags               = { Name = var.app_name }
+  tags               = { Name = "nomadic-warship-pipelines" }
 }
 
-data "aws_iam_policy_document" "nomadic_pipeline_assume_role" {
+data "aws_iam_policy_document" "warship_pipelines_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
     principals {
@@ -15,13 +18,13 @@ data "aws_iam_policy_document" "nomadic_pipeline_assume_role" {
   }
 }
 
-resource "aws_iam_role_policy" "nomadic_pipeline" {
-  name_prefix = var.app_name
-  policy      = data.aws_iam_policy_document.nomadic_pipeline.json
-  role        = aws_iam_role.nomadic_pipeline.id
+resource "aws_iam_role_policy" "warship_pipelines" {
+  name_prefix = "nomadic-warship-pipelines-"
+  policy      = data.aws_iam_policy_document.warship_pipelines.json
+  role        = aws_iam_role.warship_pipelines.id
 }
 
-data "aws_iam_policy_document" "nomadic_pipeline" {
+data "aws_iam_policy_document" "warship_pipelines" {
   statement {
     sid = "1"
     actions = [
@@ -69,8 +72,8 @@ data "aws_iam_policy_document" "nomadic_pipeline" {
       "s3:PutObject"
     ]
     resources = [
-      aws_s3_bucket.nomadic_pipeline.arn,
-      "${aws_s3_bucket.nomadic_pipeline.arn}/*"
+      aws_s3_bucket.warship_pipelines.arn,
+      "${aws_s3_bucket.warship_pipelines.arn}/*"
     ]
   }
 }

@@ -6,11 +6,11 @@ efs_enable = false
 
 elb_enable = false
 
-app_name = "nomadic-skeleton"
+app_name = "skeleton"
 
-environment = "production"
+environment = "development"
 
-timestamp = "January2022"
+timestamp = "February2022"
 
 tags = {
   Type = "skeleton"
