@@ -6,7 +6,6 @@ phases:
       - |
           set -ex
           env | sort
-          cd deploy
           ls -la
           pwd
           echo "
@@ -23,7 +22,9 @@ phases:
       - |
           ls -la
           pwd
-          echo deploy ${ENVIRONMENT} nomadic
+          cd warships/${APP_NAME}
+          pwd
+          echo deploy nomadic ${APP_NAME} ${ENVIRONMENT}
           PUBLIC_IP=$(curl ipecho.net/plain)
           echo ${SECGROUP_ID} ${PUBLIC_IP}
           aws ec2 authorize-security-group-ingress \
