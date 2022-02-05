@@ -24,6 +24,8 @@ jobs:
           echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
           echo "provider \"aws\" { region = \"us-east-1\" }" > terraform.tf
           cat terraform.tf
+          echo "provider \"aws\" { region = \"us-east-1\" }" > warships/terraform.tf
+          cat warships/terraform.tf
 
 
       - name: terraform cluster fmt check

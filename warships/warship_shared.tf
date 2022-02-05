@@ -1,5 +1,6 @@
 # These resources are shared by all application warship pipelines
 
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "warship_pipelines" {
   name_prefix        = "nomadic-warship-pipelines-"
