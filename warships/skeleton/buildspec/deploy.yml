@@ -36,6 +36,8 @@ phases:
           echo "Host *" | tee ~/.ssh/config
           echo "  UserKnownHostsFile /dev/null" | tee -a ~/.ssh/config
           echo "  StrictHostKeyChecking no" | tee -a ~/.ssh/config
+          echo "  User ec2-user" | tee -a ~/.ssh/config
+          echo "  IdentityFile /home/ec2-user/.ssh/ssh.key" | tee -a ~/.ssh/config
 
           echo configure private key
           aws ssm get-parameter \
@@ -43,23 +45,21 @@ phases:
             --name nomadic_ssh_key \
             --with-decryption \
             --query Parameter.Value \
-            --output text | tee ssh.key
-          chmod -c 0400 ssh.key
+            --output text | tee /home/ec2-user/.ssh/ssh.key
+          chmod -c 0400 /home/ec2-user/.ssh/ssh.key
 
           echo update nomad job
-          ssh -i ssh.key ec2-user@${NOMADIC_LEADER} "\
-            hostname && \
-            git clone https://github.com/nand0p/nomadic.git && \
-            cat nomadic/warships/containers/nomadic_frontpage/nomadic.hcl && \
-            sudo nomad run nomadic/warships/containers/nomadic_frontpage/nomadic.hcl \
-          "
+          ssh ${NOMADIC_LEADER} hostname
+          ssh ${NOMADIC_LEADER} git clone https://github.com/nand0p/nomadic.git /home/ec2-user/nomadic
+          ssh ${NOMADIC_LEADER} sudo nomad run /home/ec2-user/nomadic/warships/containers/nomadic_frontpage/nomadic.hcl
 
-          aws ec2 revoke-security-group-ingress \
-            --group-id ${SECGROUP_ID} \
-            --protocol tcp \
-            --port 22 \
-            --cidr ${PUBLIC_IP}/32
-          rm -fv ssh.key
+    finally:
+      - aws ec2 revoke-security-group-ingress \
+          --group-id ${SECGROUP_ID} \
+          --protocol tcp \
+          --port 22 \
+          --cidr ${PUBLIC_IP}/32
+      - rm -fv /home/ec2-user/.ssh/ssh.key
 
 artifacts:
   files:
