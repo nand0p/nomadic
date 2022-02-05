@@ -47,9 +47,12 @@ phases:
           chmod -c 0400 ssh.key
 
           echo update nomad job
-          ssh -i ssh.key ec2-user@${NOMADIC_LEADER} hostname
-          # scp nomad job file
-          # ssh nomad update job
+          ssh -i ssh.key ec2-user@${NOMADIC_LEADER} "\
+            hostname && \
+            git clone https://github.com/nand0p/nomadic.git && \
+            cat nomadic/warships/containers/nomadic_frontpage/nomadic.hcl && \
+            sudo nomad run nomadic/warships/containers/nomadic_frontpage/nomadic.hcl \
+          "
 
           aws ec2 revoke-security-group-ingress \
             --group-id ${SECGROUP_ID} \

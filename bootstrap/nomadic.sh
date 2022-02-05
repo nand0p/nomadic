@@ -17,6 +17,8 @@ git clone https://github.com/nand0p/nomadic.git /root/nomadic
 
 echo install service packages
 yum -y install docker consul nomad vault
+systemctl enable docker
+systemctl start docker
 
 
 echo configure cluster nodes
