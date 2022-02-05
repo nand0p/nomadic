@@ -19,14 +19,14 @@ resource "aws_codepipeline" "nomadic_warship_skeleton" {
       owner            = "AWS"
       provider         = "CodeCommit"
       version          = "1"
-      output_artifacts = [ "source_output" ]
+      output_artifacts = ["source_output"]
       configuration = {
         RepositoryName = "nomadic"
         BranchName     = "master"
       }
     }
   }
-  
+
   stage {
     name = "nomadic_warship_${var.app_name}_deploy"
     action {
@@ -34,18 +34,18 @@ resource "aws_codepipeline" "nomadic_warship_skeleton" {
       category         = "Build"
       owner            = "AWS"
       provider         = "CodeBuild"
-      input_artifacts  = [ "source_output" ]
-      output_artifacts = [ "nomadic_deploy" ]
+      input_artifacts  = ["source_output"]
+      output_artifacts = ["nomadic_deploy"]
       version          = "1"
       configuration = {
         ProjectName = aws_codebuild_project.nomadic_warship_skeleton_deploy.name
         EnvironmentVariables = jsonencode([
-          { "name"="ENVIRONMENT", "type"="PLAINTEXT", "value"=var.environment },
-          { "name"="APP_NAME", "type"="PLAINTEXT", "value"=var.app_name },
-          { "name"="AWS_REGION", "type"="PLAINTEXT", "value"=var.aws_region },
-          { "name"="SSH_KEY", "type"="PLAINTEXT", "value"=data.aws_ssm_parameter.nomadic_ssh_key.value },
-          { "name"="SECGROUP_ID", "type"="PLAINTEXT", "value"=data.aws_ssm_parameter.nomadic_security_group_id.value },
-          { "name"="NOMADIC_LEADER", "type"="PLAINTEXT", "value"=split(",",data.aws_ssm_parameter.nomadic_instances.value)[0] },
+          { "name" = "ENVIRONMENT", "type" = "PLAINTEXT", "value" = var.environment },
+          { "name" = "APP_NAME", "type" = "PLAINTEXT", "value" = var.app_name },
+          { "name" = "AWS_REGION", "type" = "PLAINTEXT", "value" = var.aws_region },
+          { "name" = "SSH_KEY", "type" = "PLAINTEXT", "value" = data.aws_ssm_parameter.nomadic_ssh_key.value },
+          { "name" = "SECGROUP_ID", "type" = "PLAINTEXT", "value" = data.aws_ssm_parameter.nomadic_security_group_id.value },
+          { "name" = "NOMADIC_LEADER", "type" = "PLAINTEXT", "value" = split(",", data.aws_ssm_parameter.nomadic_instances.value)[0] },
         ])
       }
     }

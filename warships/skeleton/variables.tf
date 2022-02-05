@@ -1,5 +1,5 @@
 variable "tags" {
-  type = map
+  type = map(any)
 }
 
 variable "aws_profile" {
