@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_ssm_parameter" "nomadic_subnets" {
   name = "nomadic_subnets"
 }

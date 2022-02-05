@@ -26,6 +26,8 @@ jobs:
           cat terraform.tf
           echo "provider \"aws\" { region = \"us-east-1\" }" > warships/terraform.tf
           cat warships/terraform.tf
+          echo "provider \"aws\" { region = \"us-east-1\" }" > warships/skeleton/terraform.tf
+          cat warships/skeleton/terraform.tf
 
 
       - name: terraform cluster fmt check
@@ -38,14 +40,27 @@ jobs:
         run: terraform plan
 
 
-      - name: terraform warships syntax check
+      - name: terraform warship shared syntax check
         run: terraform fmt -check
         working-directory: warships
 
-      - name: terraform warships init
+      - name: terraform warship shared init
         run: terraform init
         working-directory: warships
 
-      - name: terraform warships plan
+      - name: terraform warship shared plan
         run: terraform plan
         working-directory: warships
+
+
+      - name: terraform warship skeleton syntax check
+        run: terraform fmt -check
+        working-directory: warships/skeleton
+
+      - name: terraform warship skeleton init
+        run: terraform init
+        working-directory: warships/skeleton
+
+      - name: terraform warship skeleton plan
+        run: terraform plan
+        working-directory: warships/skeleton
