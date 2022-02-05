@@ -54,7 +54,7 @@ resource "aws_codepipeline" "nomadic_warship_skeleton" {
 resource "aws_codebuild_project" "nomadic_warship_skeleton_deploy" {
   name          = "nomadic-warship-${var.app_name}_deploy"
   description   = "nomadic-warship-${var.app_name}_deploy"
-  build_timeout = "15"
+  build_timeout = "10"
   service_role  = data.aws_ssm_parameter.warship_pipelines_iam_role_arn.value
 
   artifacts {

@@ -33,7 +33,7 @@ phases:
             --port 22 \
             --cidr ${PUBLIC_IP}/32 || true
           mkdir -pv /home/ec2-user/.ssh
-          echo "Host *" | tee /home/ec2-user/.ssh/config
+          echo "Host ${NOMADIC_LEADER}" | tee /home/ec2-user/.ssh/config
           echo "  UserKnownHostsFile /dev/null" | tee -a /home/ec2-user/.ssh/config
           echo "  StrictHostKeyChecking no" | tee -a /home/ec2-user/.ssh/config
           echo "  User ec2-user" | tee -a /home/ec2-user/.ssh/config
@@ -50,7 +50,7 @@ phases:
           chmod -c 0400 /home/ec2-user/.ssh/ssh.key
 
           echo update nomad job
-          ssh ${NOMADIC_LEADER} hostname
+          ssh -v ${NOMADIC_LEADER} hostname
           ssh ${NOMADIC_LEADER} git clone https://github.com/nand0p/nomadic.git /home/ec2-user/nomadic
           ssh ${NOMADIC_LEADER} sudo nomad run /home/ec2-user/nomadic/warships/containers/nomadic_frontpage/nomadic.hcl
 
