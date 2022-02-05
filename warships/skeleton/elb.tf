@@ -1,7 +1,7 @@
 resource "aws_elb" "nomadic_skeleton" {
   count                       = var.elb_enable ? 1 : 0
   name                        = var.app_name
-  instances                   = split(",", data.aws_ssm_parameter.nomadic_instances.value)
+  instances                   = split(",", data.aws_ssm_parameter.nomadic_instance_ids.value)
   subnets                     = split(",", data.aws_ssm_parameter.nomadic_subnets.value)
   security_groups             = [data.aws_ssm_parameter.nomadic_security_group_id.value]
   cross_zone_load_balancing   = true

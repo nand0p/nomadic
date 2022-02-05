@@ -87,9 +87,16 @@ resource "aws_instance" "nomadic_three" {
   }
 }
 
-resource "aws_ssm_parameter" "nomadic_instances" {
-  name      = "nomadic_instances"
+resource "aws_ssm_parameter" "nomadic_instance_ids" {
+  name      = "nomadic_instance_ids"
   type      = "String"
   overwrite = true
   value     = "${aws_instance.nomadic_one.id},${aws_instance.nomadic_two.id},${aws_instance.nomadic_three.id}"
+}
+
+resource "aws_ssm_parameter" "nomadic_instance_ips" {
+  name      = "nomadic_instance_ips"
+  type      = "String"
+  overwrite = true
+  value     = "${aws_instance.nomadic_one.public_ip},${aws_instance.nomadic_two.public_ip},${aws_instance.nomadic_three.public_ip}"
 }
