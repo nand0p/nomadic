@@ -43,7 +43,6 @@ resource "aws_codepipeline" "nomadic_warship_skeleton" {
           { "name" = "ENVIRONMENT", "type" = "PLAINTEXT", "value" = var.environment },
           { "name" = "APP_NAME", "type" = "PLAINTEXT", "value" = var.app_name },
           { "name" = "AWS_REGION", "type" = "PLAINTEXT", "value" = var.aws_region },
-          { "name" = "SSH_KEY", "type" = "PLAINTEXT", "value" = data.aws_ssm_parameter.nomadic_ssh_key.value },
           { "name" = "SECGROUP_ID", "type" = "PLAINTEXT", "value" = data.aws_ssm_parameter.nomadic_security_group_id.value },
           { "name" = "NOMADIC_LEADER", "type" = "PLAINTEXT", "value" = split(",", data.aws_ssm_parameter.nomadic_instance_ips.value)[0] },
         ])

@@ -12,7 +12,6 @@ phases:
             stack_name ${APP_NAME}
             environment ${ENVIRONMENT}
             aws_region ${AWS_REGION}
-            ssh_key ${SSH_KEY}
             security_group_id ${SECGROUP_ID}
             nomadic_leader ${NOMADIC_LEADER}
           "
@@ -39,7 +38,12 @@ phases:
           echo "  StrictHostKeyChecking no" | tee -a ~/.ssh/config
 
           echo configure private key
-          echo ${SSH_KEY} | tee ssh.key
+          aws ssm get-parameter \
+            --region us-east-1 \
+            --name nomadic_ssh_key \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text | tee ssh.key
           chmod -c 0400 ssh.key
 
           echo update nomad job
