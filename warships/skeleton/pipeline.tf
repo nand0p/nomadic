@@ -4,10 +4,10 @@
 
 resource "aws_codepipeline" "nomadic_warship_skeleton" {
   name     = "nomadic-warship-${var.app_name}"
-  role_arn = aws_iam_role.warship_pipelines.arn
+  role_arn = data.aws_ssm_parameter.warship_pipelines_iam_role_arn.value
 
   artifact_store {
-    location = aws_s3_bucket.warship_pipelines.bucket
+    location = data.aws_ssm_parameter.warship_pipelines_s3.value
     type     = "S3"
   }
 
@@ -56,7 +56,7 @@ resource "aws_codebuild_project" "nomadic_warship_skeleton_deploy" {
   name          = "nomadic-warship-${var.app_name}_deploy"
   description   = "nomadic-warship-${var.app_name}_deploy"
   build_timeout = "15"
-  service_role  = aws_iam_role.warship_pipelines.arn
+  service_role  = data.aws_ssm_parameter.warship_pipelines_iam_role_arn.value
 
   artifacts {
     type = "CODEPIPELINE"

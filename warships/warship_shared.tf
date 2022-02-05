@@ -1,4 +1,4 @@
-# One set of security resources shared by all application warship pipelines
+# These resources are shared by all application warship pipelines
 
 
 resource "aws_iam_role" "warship_pipelines" {
@@ -76,4 +76,24 @@ data "aws_iam_policy_document" "warship_pipelines" {
       "${aws_s3_bucket.warship_pipelines.arn}/*"
     ]
   }
+}
+
+resource "aws_s3_bucket" "warship_pipelines" {
+  bucket_prefix = "nomadic-warship-pipelines-"
+  acl           = "private"
+  force_destroy = true
+}
+
+resource "aws_ssm_parameter" "warship_pipelines_s3" {
+  name      = "warship_pipelines_s3"
+  type      = "String"
+  overwrite = true
+  value     = aws_s3_bucket.warship_pipelines.id
+}
+
+resource "aws_ssm_parameter" "warship_pipelines_iam_role_arn" {
+  name      = "warship_pipelines_iam_role_arn"
+  type      = "String"
+  overwrite = true
+  value     = aws_iam_role.warship_pipelines.arn
 }
