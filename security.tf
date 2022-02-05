@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "allow_intra_cluster" {
   from_port         = 1
   to_port           = 65535
   security_group_id = aws_security_group.nomadic_cluster[0].id
-  cidr_blocks       = [
+  cidr_blocks = [
     "${var.nomadic_cluster_ip_one}/32",
     "${var.nomadic_cluster_ip_two}/32",
     "${var.nomadic_cluster_ip_three}/32"

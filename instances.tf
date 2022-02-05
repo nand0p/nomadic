@@ -1,11 +1,11 @@
 data "aws_ami" "nomadic" {
- most_recent = true
- owners = [ "amazon" ]
+  most_recent = true
+  owners      = ["amazon"]
 
- filter {
-   name   = "name"
-   values = ["amzn2-ami-hvm*"]
- }
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
 }
 
 data "template_file" "nomadic_boot" {

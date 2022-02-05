@@ -3,11 +3,11 @@ variable "stack_name" {
 }
 
 variable "tags" {
-  type = map
+  type = map(any)
 }
 
 variable "allow_public_ip" {
-  type = bool
+  type        = bool
   description = "Associate public ip with instance"
 }
 
@@ -28,7 +28,7 @@ variable "timestamp" {
 }
 
 variable "trusted_cidrs" {
-  type = list
+  type = list(any)
 }
 
 variable "key_name" {
@@ -52,7 +52,7 @@ variable "vault_version" {
 }
 
 variable "dns_hosted_zone_id" {
-  type = string
+  type        = string
   description = "Route53 Zone ID as assigned by AWS for managing DNS records."
 }
 

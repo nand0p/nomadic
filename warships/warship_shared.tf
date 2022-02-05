@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "warship_pipelines_assume_role" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
-      identifiers = [ "ec2.amazonaws.com", "codepipeline.amazonaws.com", "codebuild.amazonaws.com" ]
+      identifiers = ["ec2.amazonaws.com", "codepipeline.amazonaws.com", "codebuild.amazonaws.com"]
     }
   }
 }
@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "warship_pipelines" {
       "route53:GetChange",
       "route53:ListResourceRecordSets",
     ]
-    resources = [ "*" ]
+    resources = ["*"]
   }
 
   statement {

@@ -1,0 +1,47 @@
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    environment: gha-ci
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04 ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set up terraform ${{ matrix.os }}
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+
+      - name: aws creds
+        run: |
+          mkdir -vp ~/.aws
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+
+
+      - name: terraform cluster fmt check
+        run: terraform fmt -check
+
+      - name: terraform cluster init
+        run: terraform init
+
+      - name: terraform cluster plan
+        run: terraform plan
+
+
+      - name: terraform warships syntax check
+        run: terraform fmt -check
+        working-directory: warships
+
+      - name: terraform warships init
+        run: terraform init
+        working-directory: warships
+
+      - name: terraform warships plan
+        run: terraform plan
+        working-directory: warships
