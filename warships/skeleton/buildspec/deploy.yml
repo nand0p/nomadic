@@ -52,9 +52,9 @@ phases:
           echo deploy and or update nomad job
           ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} hostname
 
-          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} git clone https://github.com/nand0p/nomadic.git /home/ec2-user/nomadic
+          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} wget -O /home/ec2-user/nomadic.hcl https://raw.githubusercontent.com/nand0p/nomadic/master/warships/nomadic_application_example.hcl
 
-          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} nomad run /home/ec2-user/nomadic/warships/containers/nomadic_frontpage/nomadic.hcl
+          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} nomad job run /home/ec2-user/nomadic.hcl
 
     finally:
       - aws --region us-east-1 ec2 revoke-security-group-ingress --group-id ${SECGROUP_ID} --protocol tcp --port 22 --cidr ${PUBLIC_IP}/32
