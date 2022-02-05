@@ -32,12 +32,13 @@ phases:
             --protocol tcp \
             --port 22 \
             --cidr ${PUBLIC_IP}/32 || true
-
-          echo "Host *" | tee ~/.ssh/config
-          echo "  UserKnownHostsFile /dev/null" | tee -a ~/.ssh/config
-          echo "  StrictHostKeyChecking no" | tee -a ~/.ssh/config
-          echo "  User ec2-user" | tee -a ~/.ssh/config
-          echo "  IdentityFile /home/ec2-user/.ssh/ssh.key" | tee -a ~/.ssh/config
+          mkdir -pv /home/ec2-user/.ssh
+          echo "Host *" | tee /home/ec2-user/.ssh/config
+          echo "  UserKnownHostsFile /dev/null" | tee -a /home/ec2-user/.ssh/config
+          echo "  StrictHostKeyChecking no" | tee -a /home/ec2-user/.ssh/config
+          echo "  User ec2-user" | tee -a /home/ec2-user/.ssh/config
+          echo "  IdentityFile /home/ec2-user/.ssh/ssh.key" | tee -a /home/ec2-user/.ssh/config
+          chmod -c 0400 /home/ec2-user/.ssh/config
 
           echo configure private key
           aws ssm get-parameter \
