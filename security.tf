@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_security_group" "nomadic_cluster" {
   count       = var.nomadic_security_group_id == "" ? 1 : 0
   name        = "nomadic_cluster"
