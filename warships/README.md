@@ -2,7 +2,7 @@
 
 ### Each application, or Warship, has a unique journey and lifecycle.
 - The terraform resources in this directory are shared amongst all the warship application pipelines. 
-- Docker directory `container`. This directory contains application Dockerfile and supporting files.
+- Docker directory `nomadic_application_example`. This directory contains application Dockerfile and supporting files.
 - Terraform template directory `skeleton`. This example directory is used to deploy Warship Pipelines (CodePipelines).
 
 ###To create a Warship Application (container image, pipeline, and deployment):

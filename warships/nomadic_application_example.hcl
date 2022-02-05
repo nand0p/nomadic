@@ -16,7 +16,7 @@ job "nomadic" {
   }
 
   group "nomadic" {
-    count = 2
+    count = 3 
     restart {
       attempts = 2
       interval = "1m"
@@ -50,7 +50,7 @@ job "nomadic" {
       }
 
       resources {
-        cpu = 500
+        cpu = 1
         memory = 16
         network {
           mbits = 1
