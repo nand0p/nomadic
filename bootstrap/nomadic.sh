@@ -52,6 +52,16 @@ sed -i "s|CONSUL_ENCRYPTION_KEY|$${CONSUL_KEY}|g" /etc/consul.d/consul.hcl
 sed -i "s|NOMADIC_ONE_IP|${PRIVATE_IP_ONE}|g" /etc/consul.d/consul.hcl
 sed -i "s|NOMADIC_TWO_IP|${PRIVATE_IP_TWO}|g" /etc/consul.d/consul.hcl
 sed -i "s|NOMADIC_THREE_IP|${PRIVATE_IP_THREE}|g" /etc/consul.d/consul.hcl
+if [ "${PRIVATE_IP_ONE}" == "$${LOCAL_IP}" ]; then
+  echo "advertise_addr = \"${PRIVATE_IP_ONE}\"" | tee -a /etc/consul.d/consul.hcl
+  echo "client_addr = \"127.0.0.1 ${PRIVATE_IP_ONE}\"" | tee -a /etc/consul.d/consul.hcl
+elif [ "${PRIVATE_IP_TWO}" == "$${LOCAL_IP}" ]; then
+  echo "advertise_addr = \"${PRIVATE_IP_TWO}\"" | tee -a /etc/consul.d/consul.hcl
+  echo "client_addr = \"127.0.0.1 ${PRIVATE_IP_TWO}\"" | tee -a /etc/consul.d/consul.hcl
+elif [ "${PRIVATE_IP_THREE}" == "$${LOCAL_IP}" ]; then
+  echo "advertise_addr = \"${PRIVATE_IP_THREE}\"" | tee -a /etc/consul.d/consul.hcl
+  echo "client_addr = \"127.0.0.1 ${PRIVATE_IP_THREE}\"" | tee -a /etc/consul.d/consul.hcl
+fi
 cat /etc/consul.d/consul.hcl
 systemctl enable consul
 systemctl start consul

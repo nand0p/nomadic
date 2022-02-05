@@ -147,6 +147,16 @@ resource "aws_security_group_rule" "allow_vault_api" {
   cidr_blocks       = var.trusted_cidrs
 }
 
+resource "aws_security_group_rule" "allow_docker_ephemeral" {
+  count             = var.nomadic_security_group_id == "" ? 1 : 0
+  type              = "ingress"
+  from_port         = 20000
+  to_port           = 32000
+  protocol          = "tcp"
+  security_group_id = aws_security_group.nomadic_cluster[0].id
+  cidr_blocks       = var.trusted_cidrs
+}
+
 resource "aws_iam_instance_profile" "nomadic" {
   count = var.nomadic_instance_profile_name == "" ? 1 : 0
   name  = var.stack_name
