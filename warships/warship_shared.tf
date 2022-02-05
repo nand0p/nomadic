@@ -62,6 +62,7 @@ data "aws_iam_policy_document" "warship_pipelines" {
       "route53:ListResourceRecordSets",
       "ec2:AuthorizeSecurityGroupIngress",
       "ec2:RevokeSecurityGroupIngress",
+      "ssm:GetParameter",
     ]
     resources = ["*"]
   }
