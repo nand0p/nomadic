@@ -140,3 +140,17 @@ journalctl -u nomad
 /usr/bin/vault status -address="https://vault.nomadic.red:8200"
 systemctl status vault
 journalctl -u vault
+
+
+#echo run nomadic example job
+#nomad job run /root/nomadic/warships/nomadic_application_example.hcl
+#NOTE: this is run via Warship Pipeline
+
+
+echo run various containers
+git clone https://github.com/nand0p/ci.git /root/ci
+nomad job run /root/ci/nomadic/hex7.hcl
+nomad job run /root/ci/nomadic/covid19.hcl
+nomad job run /root/ci/nomadic/damnswank.hcl
+nomad job run /root/ci/nomadic/reimage.hcl
+nomad job run /root/ci/nomadic/reart.hcl
