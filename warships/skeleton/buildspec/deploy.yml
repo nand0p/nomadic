@@ -13,7 +13,6 @@ phases:
             environment ${ENVIRONMENT}
             aws_region ${AWS_REGION}
             security_group_id ${SECGROUP_ID}
-            nomadic_leader ${NOMADIC_LEADER}
           "
 
   build:
@@ -33,12 +32,14 @@ phases:
             --port 22 \
             --cidr ${PUBLIC_IP}/32 || true
           mkdir -pv /home/ec2-user/.ssh
-          #echo "Host ${NOMADIC_LEADER}" | tee /home/ec2-user/.ssh/config
-          #echo "  UserKnownHostsFile /dev/null" | tee -a /home/ec2-user/.ssh/config
-          #echo "  StrictHostKeyChecking no" | tee -a /home/ec2-user/.ssh/config
-          #echo "  User ec2-user" | tee -a /home/ec2-user/.ssh/config
-          #echo "  IdentityFile /home/ec2-user/.ssh/ssh.key" | tee -a /home/ec2-user/.ssh/config
-          #chmod -c 0400 /home/ec2-user/.ssh/config
+
+          echo get nomadic leader
+          NOMADIC_LEADER=$(aws ssm get-parameter \
+            --region us-east-1 \
+            --name nomadic_instance_ips \
+            --with-decryption \
+            --query Parameter.Value \
+            --output text | cut -d',' -f1)
 
           echo configure private key
           aws ssm get-parameter \
@@ -50,11 +51,11 @@ phases:
           chmod -c 0400 /home/ec2-user/.ssh/ssh.key
 
           echo deploy and or update nomad job
-          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} hostname
+          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@$${NOMADIC_LEADER} hostname
 
-          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} wget -O /home/ec2-user/nomadic.hcl https://raw.githubusercontent.com/nand0p/nomadic/master/warships/nomadic_application_example.hcl
+          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@$${NOMADIC_LEADER} wget -O /home/ec2-user/nomadic.hcl https://raw.githubusercontent.com/nand0p/nomadic/master/warships/nomadic_application_example.hcl
 
-          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@${NOMADIC_LEADER} nomad job run /home/ec2-user/nomadic.hcl
+          ssh -i /home/ec2-user/.ssh/ssh.key -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ec2-user@$${NOMADIC_LEADER} nomad job run /home/ec2-user/nomadic.hcl
 
     finally:
       - aws --region us-east-1 ec2 revoke-security-group-ingress --group-id ${SECGROUP_ID} --protocol tcp --port 22 --cidr ${PUBLIC_IP}/32
