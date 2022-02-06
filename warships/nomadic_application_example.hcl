@@ -10,7 +10,7 @@ job "nomadic" {
 
   update {
     stagger = "1s"
-    max_parallel = 2
+    max_parallel = 3
     min_healthy_time = "2s"
     healthy_deadline = "2m"
   }
@@ -19,7 +19,7 @@ job "nomadic" {
     count = 3 
     restart {
       attempts = 2
-      interval = "1m"
+      interval = "10s"
       delay = "10s"
       mode = "fail"
     }
@@ -50,8 +50,8 @@ job "nomadic" {
       }
 
       resources {
-        cpu = 1
-        memory = 16
+        cpu = 250
+        memory = 12
         network {
           mbits = 1
           port "http" {}
