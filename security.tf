@@ -137,6 +137,16 @@ resource "aws_security_group_rule" "allow_vault" {
   cidr_blocks       = var.trusted_cidrs
 }
 
+resource "aws_security_group_rule" "allow_http" {
+  count             = var.nomadic_security_group_id == "" ? 1 : 0
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = aws_security_group.nomadic_cluster[0].id
+  cidr_blocks       = var.trusted_cidrs
+}
+
 resource "aws_security_group_rule" "allow_vault_api" {
   count             = var.nomadic_security_group_id == "" ? 1 : 0
   type              = "ingress"

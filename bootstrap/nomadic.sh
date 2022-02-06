@@ -17,6 +17,7 @@ git clone https://github.com/nand0p/nomadic.git /root/nomadic
 
 echo install service packages
 yum -y install docker consul nomad vault
+usermod -aG docker ec2-user
 systemctl enable docker
 systemctl start docker
 
