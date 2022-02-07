@@ -11,7 +11,7 @@ job "nomadic" {
   update {
     stagger          = "1s"
     max_parallel     = 3
-    min_healthy_time = "1s"
+    min_healthy_time = "3s"
     healthy_deadline = "10s"
   }
 
@@ -53,7 +53,7 @@ job "nomadic" {
 
       resources {
         cpu    = 20
-        memory = 12
+        memory = 20
       }
 
       logs {
