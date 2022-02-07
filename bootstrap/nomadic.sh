@@ -11,10 +11,6 @@ yum -y install git nmap nc htop yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
 
 
-echo clone nomadic repo
-git clone https://github.com/nand0p/nomadic.git /root/nomadic
-
-
 echo install service packages
 yum -y install docker consul nomad vault
 usermod -aG docker ec2-user
@@ -142,15 +138,16 @@ systemctl status vault
 journalctl -u vault
 
 
-#echo run nomadic example job
-#nomad job run /root/nomadic/warships/nomadic_application_example.hcl
-#NOTE: this is run via Warship Pipeline
+echo clone nomadic repo
+git clone https://github.com/nand0p/nomadic.git /home/ec2-user/nomadic
+chown -R ec2-user. /home/ec2-user/nomadic
 
 
-echo run various containers
-git clone https://github.com/nand0p/ci.git /root/ci
-nomad job run /root/ci/nomadic/hex7.hcl
-nomad job run /root/ci/nomadic/covid19.hcl
-nomad job run /root/ci/nomadic/damnswank.hcl
-nomad job run /root/ci/nomadic/reimage.hcl
-nomad job run /root/ci/nomadic/reart.hcl
+echo run various containers on nomadic cluster
+git clone https://github.com/nand0p/ci.git /home/ec2-user/ci
+chown -R ec2-user. /home/ec2-user/ci
+nomad job run /home/ec2-user/ci/nomadic/hex7.hcl
+nomad job run /home/ec2-user/ci/nomadic/covid19.hcl
+nomad job run /home/ec2-user/ci/nomadic/reimage.hcl
+nomad job run /home/ec2-user/ci/nomadic/reart.hcl
+nomad job run /home/ec2-user/ci/nomadic/damnswank.hcl
